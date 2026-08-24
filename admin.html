@@ -89,6 +89,14 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
 .resposta{display:flex;gap:8px;align-items:flex-end;padding:0 18px 18px}
 .resposta textarea{resize:vertical;min-height:44px}
 .resposta .btn{width:auto;padding:12px 16px;font-size:12.5px}
+
+.rodapeConversa{padding:0 18px 16px;text-align:right}
+.excluir{
+  font-family:var(--display);font-size:12px;color:#A32D2D;background:none;
+  border:none;cursor:pointer;padding:6px 0;text-decoration:underline;
+}
+.excluir:hover{color:#791F1F}
+.excluir:disabled{opacity:.5;cursor:default}
 </style>
 </head>
 <body>
@@ -247,10 +255,35 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
           var badge = sum.querySelector(".badge");
           if (badge) badge.remove();
         })
-        .catch(function(){ dizer("Não consegui enviar a resposta agora.", true); })
+        .catch(function(){ alert("Não consegui enviar a resposta agora."); })
         .then(function(){ botao.disabled = false; botao.textContent = "Responder"; });
     });
     det.appendChild(resp);
+
+    var rodape = document.createElement("div");
+    rodape.className = "rodapeConversa";
+    var btnExcluir = document.createElement("button");
+    btnExcluir.type = "button";
+    btnExcluir.className = "excluir";
+    btnExcluir.textContent = "Excluir conversa";
+    btnExcluir.addEventListener("click", function(){
+      if (!confirm("Excluir a conversa " + c.protocolo + "? Essa ação não pode ser desfeita.")) return;
+      btnExcluir.disabled = true; btnExcluir.textContent = "Excluindo…";
+      fetch(SB.url + "/rest/v1/conversas?protocolo=eq." + encodeURIComponent(c.protocolo), {
+        method: "DELETE",
+        headers: { "apikey": SB.anonKey, "Authorization": "Bearer " + token }
+      })
+        .then(function(r){
+          if (!r.ok) throw new Error("falhou");
+          det.remove();
+        })
+        .catch(function(){
+          alert("Não consegui excluir agora.");
+          btnExcluir.disabled = false; btnExcluir.textContent = "Excluir conversa";
+        });
+    });
+    rodape.appendChild(btnExcluir);
+    det.appendChild(rodape);
 
     return det;
   }
