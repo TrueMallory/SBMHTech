@@ -172,7 +172,9 @@ header.nav,.ai-intro{animation:revealIn 1s cubic-bezier(.22,.61,.36,1) both}
   color:var(--ink);margin-top:2px;
 }
 .msg .av svg{width:12px;height:12px}
+.msg .av{font-size:10px;font-weight:700;letter-spacing:.02em}
 .msg .body{padding-top:2px;max-width:76ch}
+.msg .quemFala{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:3px}
 .msg.me{justify-content:flex-end}
 .msg.me .body{
   background:var(--ink);color:var(--paper);
@@ -641,16 +643,25 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
     if (quem !== "me"){
       var av = document.createElement("div");
       av.className = "av";
-      av.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>';
+      av.innerHTML = quem === "admin"
+        ? "SB"
+        : '<svg viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>';
       m.appendChild(av);
     }
     var b = document.createElement("div");
     b.className = "body";
-    b.textContent = texto;
+    if (quem === "admin"){
+      var rotuloEl = document.createElement("span");
+      rotuloEl.className = "quemFala";
+      rotuloEl.textContent = "Administrador";
+      b.appendChild(rotuloEl);
+    }
+    b.appendChild(document.createTextNode(texto));
     m.appendChild(b);
     log.appendChild(m);
     rolar();
-    transcricao.push((quem === "me" ? "Cliente: " : "SBMH: ") + texto);
+    var rotulo = quem === "me" ? "Cliente: " : quem === "admin" ? "Administrador: " : "SBMH: ";
+    transcricao.push(rotulo + texto);
     mensagensIA.push({ quem: quem, texto: texto });
   }
 
@@ -705,6 +716,30 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
     handoff.classList.add("on");
     bolha("me", texto);
     perguntarIA();
+    setInterval(verificarNovasMensagens, 6000);
+  }
+
+  /* checa se o administrador respondeu pelo painel */
+  function verificarNovasMensagens(){
+    fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SB.anonKey,
+        "Authorization": "Bearer " + SB.anonKey
+      },
+      body: JSON.stringify({ protocolo: protocolo, buscarMensagens: true })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(dados){
+        var doServidor = Array.isArray(dados.mensagens) ? dados.mensagens : [];
+        if (doServidor.length > mensagensIA.length){
+          doServidor.slice(mensagensIA.length).forEach(function(m){
+            if (m && m.quem === "admin"){ bolha("admin", m.texto); }
+          });
+        }
+      })
+      .catch(function(){});
   }
 
   function montarTexto(){

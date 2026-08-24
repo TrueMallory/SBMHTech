@@ -30,6 +30,24 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const ADMIN_EMAIL = "sbmhholding@gmail.com";
+
+// lê o e-mail de dentro do token já validado pela plataforma (JWT verify está ligado na função)
+function emailDoPedido(req: Request): string | null {
+  const auth = req.headers.get("authorization") || "";
+  const token = auth.replace(/^Bearer\s+/i, "");
+  const partes = token.split(".");
+  if (partes.length < 2) return null;
+  try {
+    let b64 = partes[1].replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const payload = JSON.parse(atob(b64));
+    return typeof payload.email === "string" ? payload.email : null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS });
@@ -43,7 +61,76 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { historico, protocolo, marcarEnviado } = await req.json();
+    const { historico, protocolo, marcarEnviado, mensagemAdmin, buscarMensagens } = await req.json();
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    // administrador respondendo ao cliente pelo painel
+    if (typeof mensagemAdmin === "string" && mensagemAdmin.trim()) {
+      if (emailDoPedido(req) !== ADMIN_EMAIL) {
+        return new Response(JSON.stringify({ erro: "Sem permissão." }), {
+          status: 403,
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      if (typeof protocolo !== "string" || !protocolo || !supabaseUrl || !serviceKey) {
+        return new Response(JSON.stringify({ erro: "Requisição inválida." }), {
+          status: 400,
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      const atual = await fetch(
+        `${supabaseUrl}/rest/v1/conversas?protocolo=eq.${encodeURIComponent(protocolo)}&select=mensagens`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+      ).then((r) => r.json());
+      const mensagensAtuais = Array.isArray(atual?.[0]?.mensagens) ? atual[0].mensagens : [];
+      const mensagensNovas = mensagensAtuais.concat([{ quem: "admin", texto: mensagemAdmin.trim() }]);
+
+      const upsert = await fetch(`${supabaseUrl}/rest/v1/conversas?on_conflict=protocolo`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify({
+          protocolo,
+          mensagens: mensagensNovas,
+          enviado_admin: false,
+          atualizado_em: new Date().toISOString(),
+        }),
+      });
+      if (!upsert.ok) {
+        console.error("Erro ao salvar resposta do admin:", await upsert.text());
+        return new Response(JSON.stringify({ erro: "Falha ao enviar a resposta." }), {
+          status: 502,
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...CORS, "content-type": "application/json" },
+      });
+    }
+
+    // cliente checando se o administrador já respondeu
+    if (buscarMensagens) {
+      if (typeof protocolo !== "string" || !protocolo || !supabaseUrl || !serviceKey) {
+        return new Response(JSON.stringify({ erro: "Protocolo obrigatório." }), {
+          status: 400,
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      const linha = await fetch(
+        `${supabaseUrl}/rest/v1/conversas?protocolo=eq.${encodeURIComponent(protocolo)}&select=mensagens`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+      ).then((r) => r.json());
+      const mensagens = Array.isArray(linha?.[0]?.mensagens) ? linha[0].mensagens : [];
+      return new Response(JSON.stringify({ mensagens }), {
+        headers: { ...CORS, "content-type": "application/json" },
+      });
+    }
 
     // aviso rápido: "enviar conversa ao administrador" — não chama a IA, só sinaliza no banco
     if (marcarEnviado) {
@@ -53,8 +140,6 @@ Deno.serve(async (req) => {
           headers: { ...CORS, "content-type": "application/json" },
         });
       }
-      const supabaseUrl = Deno.env.get("SUPABASE_URL");
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
       if (!supabaseUrl || !serviceKey) {
         return new Response(JSON.stringify({ erro: "Configuração do servidor ausente." }), {
           status: 500,
@@ -144,8 +229,6 @@ Deno.serve(async (req) => {
 
     // guarda a conversa completa para o painel do administrador
     if (typeof protocolo === "string" && protocolo) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL");
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
       if (supabaseUrl && serviceKey) {
         const mensagensCompletas = historico.concat([{ quem: "bot", texto }]);
         await fetch(`${supabaseUrl}/rest/v1/conversas?on_conflict=protocolo`, {

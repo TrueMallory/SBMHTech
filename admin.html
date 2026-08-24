@@ -85,6 +85,10 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
 .msg{display:flex;gap:10px;font-size:14px;line-height:1.55}
 .msg .quem{flex:0 0 auto;font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);width:60px}
 .msg.me .quem{color:var(--ink)}
+
+.resposta{display:flex;gap:8px;align-items:flex-end;padding:0 18px 18px}
+.resposta textarea{resize:vertical;min-height:44px}
+.resposta .btn{width:auto;padding:12px 16px;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -115,6 +119,7 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
     <b>Painel SBMH</b>
     <div style="display:flex;align-items:center;gap:14px">
       <span class="quem" id="quemEsta"></span>
+      <button class="sair" id="btnAtualizar" type="button">Atualizar</button>
       <button class="sair" id="btnSair" type="button">Sair</button>
     </div>
   </div>
@@ -169,7 +174,7 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
     } catch(e){ return iso; }
   }
 
-  function montarConversa(c){
+  function montarConversa(c, token){
     var det = document.createElement("details");
     det.className = "conversa";
 
@@ -203,6 +208,50 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
       corpo.appendChild(linha);
     });
     det.appendChild(corpo);
+
+    var resp = document.createElement("form");
+    resp.className = "resposta";
+    resp.innerHTML =
+      '<textarea class="inp" rows="2" placeholder="Escreva sua resposta ao cliente…"></textarea>' +
+      '<button class="btn" type="submit">Responder</button>';
+    var campo = resp.querySelector("textarea");
+    var botao = resp.querySelector("button");
+    resp.addEventListener("submit", function(e){
+      e.preventDefault();
+      var texto = campo.value.trim();
+      if (!texto) return;
+      botao.disabled = true; botao.textContent = "Enviando…";
+      fetch(SB.url + "/functions/v1/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SB.anonKey,
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ protocolo: c.protocolo, mensagemAdmin: texto })
+      })
+        .then(function(r){ return r.json(); })
+        .then(function(dados){
+          if (!dados.ok){ throw new Error("falhou"); }
+          var linha = document.createElement("div");
+          linha.className = "msg";
+          var rotulo = document.createElement("span");
+          rotulo.className = "quem";
+          rotulo.textContent = "você";
+          var span = document.createElement("span");
+          span.textContent = texto;
+          linha.appendChild(rotulo); linha.appendChild(span);
+          corpo.appendChild(linha);
+          campo.value = "";
+          det.classList.remove("avisada");
+          var badge = sum.querySelector(".badge");
+          if (badge) badge.remove();
+        })
+        .catch(function(){ dizer("Não consegui enviar a resposta agora.", true); })
+        .then(function(){ botao.disabled = false; botao.textContent = "Responder"; });
+    });
+    det.appendChild(resp);
+
     return det;
   }
 
@@ -227,7 +276,7 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
         }
         lista.className = "";
         lista.innerHTML = "";
-        dados.forEach(function(c){ lista.appendChild(montarConversa(c)); });
+        dados.forEach(function(c){ lista.appendChild(montarConversa(c, token)); });
       })
       .catch(function(e){
         if (e && e.message === "sessao-expirada"){
@@ -239,6 +288,11 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
         lista.className = "status";
       });
   }
+
+  document.getElementById("btnAtualizar").addEventListener("click", function(){
+    var sessao = lerSessao();
+    if (sessao && sessao.token) carregarConversas(sessao.token);
+  });
 
   document.getElementById("btnSair").addEventListener("click", function(){
     apagarSessao();
