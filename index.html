@@ -190,7 +190,7 @@ header.nav,.ai-intro{animation:revealIn 1s cubic-bezier(.22,.61,.36,1) both}
 .handoff{display:none;flex-wrap:wrap;gap:8px;margin-bottom:10px}
 .handoff.on{display:flex}
 .handoff .btn{font-size:12.5px;padding:12px 16px}
-.handoff #sendWhats{flex:1 1 100%}
+.handoff #avisarAdmin{flex:1 1 100%}
 .handoff .btn-ghost{flex:1 1 calc(50% - 5px)}
 
 .composer{
@@ -353,7 +353,7 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
 
       <div class="ai-foot">
         <div class="handoff" id="handoff">
-          <button class="btn" type="button" id="sendWhats">Enviar conversa ao administrador</button>
+          <button class="btn" type="button" id="avisarAdmin">Enviar conversa ao administrador</button>
           <button class="btn btn-ghost" type="button" id="copyTalk">Copiar a conversa</button>
           <button class="btn btn-ghost" type="button" id="sendMail">Enviar por e-mail</button>
         </div>
@@ -717,9 +717,28 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
     return l.join("\n");
   }
 
-  document.getElementById("sendWhats").addEventListener("click", function(){
-    window.open("https://wa.me/" + CFG.whatsapp + "?text=" + encodeURIComponent(montarTexto()),
-                "_blank", "noopener");
+  document.getElementById("avisarAdmin").addEventListener("click", function(){
+    var btn = this;
+    btn.disabled = true; btn.textContent = "Enviando…";
+    fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SB.anonKey,
+        "Authorization": "Bearer " + SB.anonKey
+      },
+      body: JSON.stringify({ protocolo: protocolo, marcarEnviado: true })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(dados){
+        if (!dados.ok){ throw new Error("falhou"); }
+        btn.textContent = "Conversa enviada ✓";
+        bolha("bot", "Prontinho, avisei o administrador. Ele te retorna em até 24 horas.");
+      })
+      .catch(function(){
+        btn.disabled = false; btn.textContent = "Enviar conversa ao administrador";
+        bolha("bot", "Não consegui avisar agora. Tenta de novo em instantes.");
+      });
   });
 
   document.getElementById("sendMail").addEventListener("click", function(){

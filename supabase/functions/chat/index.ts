@@ -43,7 +43,49 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { historico, protocolo } = await req.json();
+    const { historico, protocolo, marcarEnviado } = await req.json();
+
+    // aviso rápido: "enviar conversa ao administrador" — não chama a IA, só sinaliza no banco
+    if (marcarEnviado) {
+      if (typeof protocolo !== "string" || !protocolo) {
+        return new Response(JSON.stringify({ erro: "Protocolo obrigatório." }), {
+          status: 400,
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (!supabaseUrl || !serviceKey) {
+        return new Response(JSON.stringify({ erro: "Configuração do servidor ausente." }), {
+          status: 500,
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      const upsert = await fetch(`${supabaseUrl}/rest/v1/conversas?on_conflict=protocolo`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify({
+          protocolo,
+          enviado_admin: true,
+          atualizado_em: new Date().toISOString(),
+        }),
+      });
+      if (!upsert.ok) {
+        console.error("Erro ao marcar conversa:", await upsert.text());
+        return new Response(JSON.stringify({ erro: "Falha ao avisar o administrador." }), {
+          status: 502,
+          headers: { ...CORS, "content-type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...CORS, "content-type": "application/json" },
+      });
+    }
 
     if (!Array.isArray(historico) || historico.length === 0) {
       return new Response(JSON.stringify({ erro: "Envie 'historico' como lista de mensagens." }), {
