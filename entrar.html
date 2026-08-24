@@ -136,6 +136,18 @@ a{color:inherit}
   body{padding:24px 16px}
   .box{padding:28px 22px 24px;border-radius:14px}
 }
+
+.wa-float{
+  position:fixed;right:22px;bottom:22px;z-index:60;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--ink);color:var(--paper);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(11,11,12,.22);
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+.wa-float svg{width:27px;height:27px}
+.wa-float:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(11,11,12,.28)}
+@media (prefers-reduced-motion: reduce){.wa-float{transition:none}.wa-float:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -244,6 +256,10 @@ a{color:inherit}
 
   <a class="back" href="index.html" id="voltar">← Voltar ao site</a>
 </main>
+
+<a class="wa-float" href="https://wa.me/5592994332941?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20SBMH%20Tech." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.71.45 3.38 1.29 4.85L2 22l5.35-1.4a9.9 9.9 0 0 0 4.69 1.19h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 1.67c2.24 0 4.35.87 5.94 2.46a8.3 8.3 0 0 1 2.45 5.92c0 4.6-3.75 8.35-8.35 8.35a8.3 8.3 0 0 1-4.24-1.15l-.3-.18-3.18.83.85-3.1-.2-.32a8.24 8.24 0 0 1-1.27-4.39c0-4.6 3.75-8.42 8.3-8.42zm-3.29 4.9c-.16 0-.42.06-.64.31-.22.25-.85.83-.85 2.03 0 1.2.87 2.35 1 2.51.12.16 1.7 2.72 4.19 3.71.58.25 1.04.4 1.4.51.59.19 1.12.16 1.54.1.47-.07 1.44-.59 1.65-1.16.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.47-.28-.25-.13-1.44-.71-1.66-.79-.22-.08-.39-.13-.55.13-.16.25-.63.79-.78.95-.14.16-.29.18-.54.06-.25-.13-1.06-.39-2.02-1.24-.75-.66-1.25-1.48-1.4-1.73-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.12-.15.16-.25.24-.42.08-.16.04-.31-.02-.44-.06-.13-.55-1.36-.76-1.86-.2-.48-.4-.42-.55-.42h-.47z" fill="currentColor"/></svg>
+</a>
 
 <script>
 (function(){
