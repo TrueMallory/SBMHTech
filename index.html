@@ -186,14 +186,6 @@ header.nav,.ai-intro{animation:revealIn 1s cubic-bezier(.22,.61,.36,1) both}
 
 /* rodapé do chat */
 .ai-foot{padding-bottom:22px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.chip{
-  font-family:var(--body);font-size:14.5px;background:var(--paper);
-  border:1px solid var(--line);border-radius:999px;padding:9px 16px;
-  cursor:pointer;color:var(--ink);
-  transition:border-color .16s ease,background .16s ease;
-}
-.chip:hover{border-color:var(--ink);background:var(--wash)}
 
 .handoff{display:none;flex-wrap:wrap;gap:9px;margin-bottom:14px}
 .handoff.on{display:flex}
@@ -330,7 +322,7 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
   <div class="wrap nav-in">
     <a class="brand" href="#chat">
       <span class="mark" role="img" aria-label="SBMH Technology"></span>
-      <b>SBMH Technology</b>
+      <b>SBMH</b>
     </a>
     <nav class="nav-links">
       <a href="#servicos">Serviços</a>
@@ -351,8 +343,8 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
       <div class="ai-stage" id="stage">
         <div class="ai-intro" id="intro">
           <svg class="istar" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
-          <p class="eyebrow">Atendimento SBMH Technology</p>
-          <h1>Em que a SBMH Tech pode ajudar?</h1>
+          <p class="eyebrow">Milla · Atendimento SBMH</p>
+          <h1>Em que a Milla pode ajudar?</h1>
           <p>Descreva seu projeto aqui. Sistemas, aplicativos, sites e automações sob medida — conversa anônima, sem cadastro, com resposta em até 24 horas.</p>
           <div class="ai-suggest" id="suggest"></div>
         </div>
@@ -361,8 +353,6 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
       </div>
 
       <div class="ai-foot">
-        <div class="chips" id="chips"></div>
-
         <div class="handoff" id="handoff">
           <button class="btn" type="button" id="sendWhats">Enviar conversa ao administrador</button>
           <button class="btn btn-ghost" type="button" id="copyTalk">Copiar a conversa</button>
@@ -606,7 +596,6 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
   var intro   = document.getElementById("intro");
   var suggest = document.getElementById("suggest");
   var log     = document.getElementById("log");
-  var chips   = document.getElementById("chips");
   var compose = document.getElementById("compose");
   var entrada = document.getElementById("entrada");
   var handoff = document.getElementById("handoff");
@@ -615,11 +604,8 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
 
   var protocolo = "SBMH-" + Math.random().toString(36).slice(2,6).toUpperCase()
                           + Math.floor(Math.random()*90+10);
-  var respostas = {};
-  var etapa = 0;
   var travado = false;
   var iniciado = false;
-  var esperandoContato = null;
   var transcricao = [];
   var mensagensIA = [];
 
@@ -630,37 +616,6 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
     "Quero automatizar um processo",
     "Tenho um sistema para manter",
     "Ainda não sei, quero conversar"
-  ];
-
-  var roteiro = [
-    { chave:"necessidade" },
-    {
-      chave:"contexto",
-      fala:function(v){ return ["Anotado: " + String(v).toLowerCase() + ".",
-                                "Isso é para uma empresa que já está operando ou é um projeto novo?"]; },
-      opcoes:["Empresa já em operação","Projeto ou ideia nova","Uso pessoal"]
-    },
-    {
-      chave:"prazo",
-      fala:["Qual o prazo que você tem em mente?"],
-      opcoes:["O quanto antes","1 a 3 meses","3 a 6 meses","Sem prazo definido"]
-    },
-    {
-      chave:"investimento",
-      fala:["E a faixa de investimento prevista? Serve para dimensionar a proposta — ninguém é descartado por causa disso."],
-      opcoes:["Até R$ 5 mil","R$ 5 mil a R$ 15 mil","R$ 15 mil a R$ 50 mil","Acima de R$ 50 mil","Prefiro que vocês estimem"]
-    },
-    {
-      chave:"descricao",
-      fala:["Agora a parte que mais importa: descreva em poucas linhas o que o sistema precisa fazer."],
-      opcoes:null
-    },
-    {
-      chave:"retorno",
-      fala:function(){ return ["Perfeito, já tenho o essencial.",
-                               "Seu protocolo é " + protocolo + ". Como você prefere receber a resposta?"]; },
-      opcoes:["Por WhatsApp","Por e-mail","Quero seguir anônimo por enquanto"]
-    }
   ];
 
   function rolar(){ stage.scrollTop = stage.scrollHeight; }
@@ -684,8 +639,9 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
     mensagensIA.push({ quem: quem, texto: texto });
   }
 
-  /* ---------------- IA de verdade (pós-qualificação) ---------------- */
+  /* ---------------- Milla: quem conduz a conversa, do início ao fim ---------------- */
   function perguntarIA(){
+    travado = true;
     digitando();
     fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
       method: "POST",
@@ -699,11 +655,13 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
       .then(function(r){ return r.json(); })
       .then(function(dados){
         paraDigitar();
+        travado = false;
         bolha("bot", dados.texto || "Não consegui responder agora. Pode tentar de novo?");
       })
       .catch(function(){
         paraDigitar();
-        bolha("bot", "A IA está indisponível no momento. Pode continuar escrevendo que o restante chega certinho ao administrador.");
+        travado = false;
+        bolha("bot", "Estou indisponível no momento. Pode continuar escrevendo que o restante chega certinho ao administrador.");
       });
   }
 
@@ -715,34 +673,6 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
     log.appendChild(m); rolar();
   }
   function paraDigitar(){ var t = document.getElementById("typing"); if (t) t.remove(); }
-
-  function falar(linhas, depois){
-    travado = true;
-    chips.innerHTML = "";
-    var i = 0;
-    (function proxima(){
-      if (i >= linhas.length){ travado = false; if (depois) depois(); return; }
-      var atual = linhas[i];
-      digitando();
-      setTimeout(function(){
-        paraDigitar();
-        bolha("bot", atual);
-        i++;
-        setTimeout(proxima, 280);
-      }, 560 + Math.min(atual.length * 11, 900));
-    })();
-  }
-
-  function mostrarOpcoes(lista){
-    chips.innerHTML = "";
-    if (!lista) return;
-    lista.forEach(function(op){
-      var b = document.createElement("button");
-      b.type = "button"; b.className = "chip"; b.textContent = op;
-      b.addEventListener("click", function(){ responder(op); });
-      chips.appendChild(b);
-    });
-  }
 
   /* abertura: cartões de sugestão */
   aberturas.forEach(function(op){
@@ -757,77 +687,15 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
     iniciado = true;
     intro.remove();
     stage.style.justifyContent = "flex-start";
+    handoff.classList.add("on");
     bolha("me", texto);
-    respostas.necessidade = texto;
-    etapa = 1;
-    rodarEtapa();
-  }
-
-  function rodarEtapa(){
-    if (etapa >= roteiro.length){ encerrar(); return; }
-    var p = roteiro[etapa];
-    var anterior = respostas[roteiro[etapa-1].chave] || "";
-    var linhas = typeof p.fala === "function" ? p.fala(anterior) : p.fala;
-    falar(linhas, function(){ mostrarOpcoes(p.opcoes); });
-  }
-
-  function responder(texto){
-    if (travado) return;
-    var p = roteiro[etapa];
-    if (!p){ bolha("me", texto); return; }
-    bolha("me", texto);
-    respostas[p.chave] = texto;
-    chips.innerHTML = "";
-    etapa++;
-
-    if (p.chave === "retorno"){
-      if (/whats/i.test(texto)){
-        falar(["Qual o número com DDD? Ele só vai para o administrador."], function(){
-          entrada.placeholder = "Ex.: (92) 99999-0000";
-          esperandoContato = "WhatsApp";
-          entrada.focus();
-        });
-        return;
-      }
-      if (/mail/i.test(texto)){
-        falar(["Qual o e-mail para resposta?"], function(){
-          entrada.placeholder = "Ex.: voce@empresa.com.br";
-          esperandoContato = "E-mail";
-          entrada.focus();
-        });
-        return;
-      }
-      respostas.contato = "Cliente optou por seguir anônimo — retornar pelo protocolo " + protocolo;
-      encerrar();
-      return;
-    }
-    rodarEtapa();
-  }
-
-  function encerrar(){
-    falar([
-      "Pronto. Sua conversa está montada e o protocolo é " + protocolo + ".",
-      "Agora é só clicar no botão abaixo para que ela chegue ao administrador. Respondemos em até 24 horas."
-    ], function(){
-      handoff.classList.add("on");
-      entrada.placeholder = "Quer acrescentar mais alguma coisa?";
-      chips.innerHTML = "";
-      rolar();
-    });
+    perguntarIA();
   }
 
   function montarTexto(){
     var l = [];
     l.push("NOVO CONTATO PELO SITE — SBMH TECH");
     l.push("Protocolo: " + protocolo);
-    l.push("");
-    if (respostas.necessidade)  l.push("Precisa de: " + respostas.necessidade);
-    if (respostas.contexto)     l.push("Contexto: " + respostas.contexto);
-    if (respostas.prazo)        l.push("Prazo: " + respostas.prazo);
-    if (respostas.investimento) l.push("Investimento: " + respostas.investimento);
-    if (respostas.descricao)    l.push("Descricao: " + respostas.descricao);
-    if (respostas.retorno)      l.push("Retorno por: " + respostas.retorno);
-    if (respostas.contato)      l.push("Contato: " + respostas.contato);
     l.push("");
     l.push("--- conversa completa ---");
     l.push(transcricao.join("\n"));
@@ -883,20 +751,8 @@ details p{margin:0 0 24px;color:var(--mute);max-width:70ch}
 
     if (!iniciado){ iniciar(txt); return; }
 
-    if (esperandoContato){
-      bolha("me", txt);
-      respostas.contato = esperandoContato + ": " + txt;
-      esperandoContato = null;
-      entrada.placeholder = "Escreva sua mensagem…";
-      encerrar();
-      return;
-    }
-    if (etapa >= roteiro.length){
-      bolha("me", txt);
-      perguntarIA();
-      return;
-    }
-    responder(txt);
+    bolha("me", txt);
+    perguntarIA();
   });
 
   /* ---------------- revelar seções ao rolar ---------------- */
