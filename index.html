@@ -327,7 +327,7 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
       <a href="#servicos">Serviços</a>
       <a href="#processo">Processo</a>
       <a href="#duvidas">Dúvidas</a>
-      <a class="keep" href="entrar.html">Entrar</a>
+      <a class="keep" href="entrar.html" id="navEntrar">Entrar</a>
       <a class="btn btn-sm" href="#chat">Falar agora</a>
     </nav>
   </div>
@@ -557,7 +557,7 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
     </div>
     <div class="legal">
       <span>© <span id="ano">2026</span> SBMH Technology</span>
-      <span>Desenvolvimento de sistemas, aplicativos e automações</span>
+      <span>Developing solutions</span>
     </div>
   </div>
 </footer>
@@ -598,6 +598,18 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
   var handoff = document.getElementById("handoff");
   var anoEl   = document.getElementById("ano");
   if (anoEl) anoEl.textContent = new Date().getFullYear();
+
+  /* mostra o nome de quem já está logado (conta criada em entrar.html) */
+  (function(){
+    var navEntrar = document.getElementById("navEntrar");
+    if (!navEntrar) return;
+    try {
+      var sessao = JSON.parse(localStorage.getItem("sbmh.sessao") || "null");
+      if (sessao && sessao.nome){
+        navEntrar.textContent = "Olá, " + sessao.nome.split(" ")[0];
+      }
+    } catch(e){}
+  })();
 
   var protocolo = "SBMH-" + Math.random().toString(36).slice(2,6).toUpperCase()
                           + Math.floor(Math.random()*90+10);
