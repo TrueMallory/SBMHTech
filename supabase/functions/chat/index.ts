@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { historico } = await req.json();
+    const { historico, protocolo } = await req.json();
 
     if (!Array.isArray(historico) || historico.length === 0) {
       return new Response(JSON.stringify({ erro: "Envie 'historico' como lista de mensagens." }), {
@@ -99,6 +99,29 @@ Deno.serve(async (req) => {
     const texto =
       dados?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ??
       "Não consegui pensar em uma resposta agora. Pode reformular?";
+
+    // guarda a conversa completa para o painel do administrador
+    if (typeof protocolo === "string" && protocolo) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (supabaseUrl && serviceKey) {
+        const mensagensCompletas = historico.concat([{ quem: "bot", texto }]);
+        await fetch(`${supabaseUrl}/rest/v1/conversas?on_conflict=protocolo`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            Prefer: "resolution=merge-duplicates",
+          },
+          body: JSON.stringify({
+            protocolo,
+            mensagens: mensagensCompletas,
+            atualizado_em: new Date().toISOString(),
+          }),
+        }).catch((e) => console.error("Erro ao salvar conversa:", e));
+      }
+    }
 
     return new Response(JSON.stringify({ texto }), {
       headers: { ...CORS, "content-type": "application/json" },

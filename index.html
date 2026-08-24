@@ -608,6 +608,12 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
       if (sessao && sessao.nome){
         navEntrar.textContent = "Olá, " + sessao.nome.split(" ")[0];
       }
+      if (sessao && sessao.email && sessao.email.toLowerCase() === "sbmhholding@gmail.com"){
+        var linkPainel = document.createElement("a");
+        linkPainel.href = "admin.html";
+        linkPainel.textContent = "Painel";
+        navEntrar.insertAdjacentElement("beforebegin", linkPainel);
+      }
     } catch(e){}
   })();
 
@@ -659,7 +665,7 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
         "apikey": SB.anonKey,
         "Authorization": "Bearer " + SB.anonKey
       },
-      body: JSON.stringify({ historico: mensagensIA })
+      body: JSON.stringify({ historico: mensagensIA, protocolo: protocolo })
     })
       .then(function(r){ return r.json(); })
       .then(function(dados){

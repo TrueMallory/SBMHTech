@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f5f6f7">
+<title>Painel — SBMH Tech</title>
+<style>
+:root{
+  --paper:#FFFFFF; --ink:#0B0B0C; --ink-2:#2A2C30; --mute:#6B6E75;
+  --line:#E2E3E6; --wash:#F5F6F7;
+  --display:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:var(--display);font-size:15.5px;color:var(--ink);background:var(--paper);
+  min-height:100vh;
+}
+a{color:inherit}
+
+/* ---------- login ---------- */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.box{width:100%;max-width:400px;border:1px solid var(--line);border-radius:16px;padding:36px 30px}
+.brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:22px}
+.brand b{font-weight:800;font-size:18px;letter-spacing:.1em;text-transform:uppercase}
+.brand span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin:0 0 6px}
+.campo{margin-bottom:16px}
+.inp{
+  width:100%;border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+  font-family:var(--display);font-size:15px;color:var(--ink);background:var(--paper);
+}
+.inp:focus{outline:none;border-color:var(--ink)}
+.btn{
+  width:100%;font-family:var(--display);font-weight:600;font-size:14px;
+  letter-spacing:.06em;text-transform:uppercase;padding:13px;border:1px solid var(--ink);
+  border-radius:8px;background:var(--ink);color:var(--paper);cursor:pointer;
+}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.5;cursor:default}
+.aviso{
+  margin-top:14px;padding:11px 13px;border-radius:8px;font-size:13.5px;
+  background:var(--wash);color:var(--ink-2);display:none;
+}
+.aviso.on{display:block}
+.aviso.erro{background:#FBEAEA;color:#7A1F1F}
+
+/* ---------- painel ---------- */
+.painel{display:none;max-width:900px;margin:0 auto;padding:32px 20px 60px}
+.painel.on{display:block}
+.topo{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-bottom:20px;margin-bottom:24px;border-bottom:1px solid var(--line);
+}
+.topo b{font-weight:800;font-size:16px;letter-spacing:.08em;text-transform:uppercase}
+.topo .quem{font-size:13px;color:var(--mute)}
+.sair{
+  font-family:var(--display);font-size:12.5px;font-weight:600;letter-spacing:.04em;
+  background:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;
+  cursor:pointer;color:var(--ink);
+}
+.sair:hover{border-color:var(--ink)}
+
+.status{color:var(--mute);font-size:14px;padding:20px 0}
+.conversa{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.conversa summary{
+  list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;
+  gap:14px;justify-content:space-between;
+}
+.conversa summary::-webkit-details-marker{display:none}
+.conversa summary .esq{display:flex;flex-direction:column;gap:3px;min-width:0}
+.conversa .proto{font-weight:600;font-size:14px}
+.conversa .prev{font-size:13px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52ch}
+.conversa .quando{font-size:12px;color:var(--mute);white-space:nowrap}
+.conversa[open] summary{border-bottom:1px solid var(--line)}
+.msgs{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.msg{display:flex;gap:10px;font-size:14px;line-height:1.55}
+.msg .quem{flex:0 0 auto;font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);width:60px}
+.msg.me .quem{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="telaLogin">
+  <div class="box">
+    <div class="brand">
+      <b>SBMH</b>
+      <span>Painel do administrador</span>
+    </div>
+    <form id="formLogin" novalidate>
+      <div class="campo">
+        <label for="adminEmail">E-mail</label>
+        <input class="inp" id="adminEmail" type="email" autocomplete="email">
+      </div>
+      <div class="campo">
+        <label for="adminSenha">Senha</label>
+        <input class="inp" id="adminSenha" type="password" autocomplete="current-password">
+      </div>
+      <button class="btn" type="submit" id="btnLogin">Entrar</button>
+      <div class="aviso" id="aviso"></div>
+    </form>
+  </div>
+</div>
+
+<div class="painel" id="telaPainel">
+  <div class="topo">
+    <b>Painel SBMH</b>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="quem" id="quemEsta"></span>
+      <button class="sair" id="btnSair" type="button">Sair</button>
+    </div>
+  </div>
+  <div id="lista" class="status">Carregando conversas…</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SB = {
+    url:     "https://njsuezbnruhqfrtzbfcp.supabase.co",
+    anonKey: "sb_publishable_bojtE4NxOb_-p0hsU2sgZg_K4ssWydT"
+  };
+  var ADMIN_EMAIL = "sbmhholding@gmail.com";
+  var CHAVE_SESSAO = "sbmh.sessao";
+
+  var telaLogin  = document.getElementById("telaLogin");
+  var telaPainel = document.getElementById("telaPainel");
+  var formLogin  = document.getElementById("formLogin");
+  var aviso      = document.getElementById("aviso");
+  var btnLogin   = document.getElementById("btnLogin");
+  var lista      = document.getElementById("lista");
+  var quemEsta   = document.getElementById("quemEsta");
+
+  function dizer(msg, erro){
+    aviso.textContent = msg;
+    aviso.className = "aviso on" + (erro ? " erro" : "");
+  }
+
+  function lerSessao(){
+    try { return JSON.parse(localStorage.getItem(CHAVE_SESSAO) || "null"); } catch(e){ return null; }
+  }
+  function guardarSessao(s){
+    try { localStorage.setItem(CHAVE_SESSAO, JSON.stringify(s)); } catch(e){}
+  }
+  function apagarSessao(){
+    try { localStorage.removeItem(CHAVE_SESSAO); } catch(e){}
+  }
+
+  function mostrarPainel(sessao){
+    telaLogin.classList.remove("on"); telaLogin.style.display = "none";
+    telaPainel.classList.add("on");
+    quemEsta.textContent = sessao.email;
+    carregarConversas(sessao.token);
+  }
+
+  function formatarData(iso){
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString("pt-BR") + " às " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
+    } catch(e){ return iso; }
+  }
+
+  function montarConversa(c){
+    var det = document.createElement("details");
+    det.className = "conversa";
+
+    var msgs = Array.isArray(c.mensagens) ? c.mensagens : [];
+    var ultima = msgs.length ? msgs[msgs.length - 1].texto : "";
+
+    var sum = document.createElement("summary");
+    sum.innerHTML =
+      '<div class="esq">' +
+        '<span class="proto">' + c.protocolo + '</span>' +
+        '<span class="prev">' + (ultima || "").replace(/</g,"&lt;") + '</span>' +
+      '</div>' +
+      '<span class="quando">' + formatarData(c.atualizado_em) + '</span>';
+    det.appendChild(sum);
+
+    var corpo = document.createElement("div");
+    corpo.className = "msgs";
+    msgs.forEach(function(m){
+      var linha = document.createElement("div");
+      linha.className = "msg" + (m.quem === "me" ? " me" : "");
+      var rotulo = document.createElement("span");
+      rotulo.className = "quem";
+      rotulo.textContent = m.quem === "me" ? "cliente" : "milla";
+      var texto = document.createElement("span");
+      texto.textContent = m.texto;
+      linha.appendChild(rotulo); linha.appendChild(texto);
+      corpo.appendChild(linha);
+    });
+    det.appendChild(corpo);
+    return det;
+  }
+
+  function carregarConversas(token){
+    lista.textContent = "Carregando conversas…";
+    lista.className = "status";
+    fetch(SB.url + "/rest/v1/conversas?select=*&order=atualizado_em.desc", {
+      headers: {
+        "apikey": SB.anonKey,
+        "Authorization": "Bearer " + token
+      }
+    })
+      .then(function(r){
+        if (r.status === 401){ throw new Error("sessao-expirada"); }
+        return r.json();
+      })
+      .then(function(dados){
+        if (!Array.isArray(dados) || dados.length === 0){
+          lista.textContent = "Nenhuma conversa por enquanto.";
+          lista.className = "status";
+          return;
+        }
+        lista.className = "";
+        lista.innerHTML = "";
+        dados.forEach(function(c){ lista.appendChild(montarConversa(c)); });
+      })
+      .catch(function(e){
+        if (e && e.message === "sessao-expirada"){
+          apagarSessao();
+          lista.textContent = "Sua sessão expirou. Recarregue a página e entre de novo.";
+        } else {
+          lista.textContent = "Não consegui carregar as conversas agora.";
+        }
+        lista.className = "status";
+      });
+  }
+
+  document.getElementById("btnSair").addEventListener("click", function(){
+    apagarSessao();
+    location.reload();
+  });
+
+  formLogin.addEventListener("submit", function(e){
+    e.preventDefault();
+    aviso.className = "aviso";
+    var email = document.getElementById("adminEmail").value.trim();
+    var senha = document.getElementById("adminSenha").value;
+    if (!email || !senha){ dizer("Preencha e-mail e senha.", true); return; }
+
+    btnLogin.disabled = true; btnLogin.textContent = "Entrando…";
+    fetch(SB.url + "/auth/v1/token?grant_type=password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SB.anonKey },
+      body: JSON.stringify({ email: email, password: senha })
+    })
+      .then(function(r){ return r.json().then(function(d){ return { ok: r.ok, dados: d }; }); })
+      .then(function(r){
+        if (!r.ok){
+          dizer("E-mail ou senha incorretos.", true);
+          return;
+        }
+        var contaEmail = (r.dados.user && r.dados.user.email) || email;
+        if (contaEmail.toLowerCase() !== ADMIN_EMAIL){
+          dizer("Essa conta não tem acesso ao painel.", true);
+          return;
+        }
+        var sessao = { token: r.dados.access_token, refresh: r.dados.refresh_token, email: contaEmail };
+        guardarSessao(sessao);
+        mostrarPainel(sessao);
+      })
+      .catch(function(){ dizer("Não consegui falar com o servidor agora.", true); })
+      .then(function(){ btnLogin.disabled = false; btnLogin.textContent = "Entrar"; });
+  });
+
+  /* se já existir sessão salva (ex.: fez login pelo entrar.html) e for do admin, entra direto */
+  (function(){
+    var sessao = lerSessao();
+    if (sessao && sessao.email && sessao.email.toLowerCase() === ADMIN_EMAIL && sessao.token){
+      mostrarPainel(sessao);
+    }
+  })();
+})();
+</script>
+</body>
+</html>
