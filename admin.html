@@ -77,6 +77,8 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
 }
 .conversa summary::-webkit-details-marker{display:none}
 .conversa summary .esq{display:flex;flex-direction:column;gap:3px;min-width:0}
+.linhaProto{display:flex;align-items:center;gap:7px}
+.bolinha{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
 .conversa .proto{font-weight:600;font-size:14px}
 .conversa .prev{font-size:13px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52ch}
 .conversa .quando{font-size:12px;color:var(--mute);white-space:nowrap}
@@ -89,6 +91,15 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
 .resposta{display:flex;gap:8px;align-items:flex-end;padding:0 18px 18px}
 .resposta textarea{resize:vertical;min-height:44px}
 .resposta .btn{width:auto;padding:12px 16px;font-size:12.5px}
+
+.statusBox{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 14px}
+.statusBtn{
+  display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-size:12px;
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:none;cursor:pointer;color:var(--ink-2);
+}
+.statusBtn .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.statusBtn.ativo{border-color:var(--cor);color:var(--ink);font-weight:600}
+.statusBtn:hover{border-color:var(--cor)}
 
 .rodapeConversa{padding:0 18px 16px;text-align:right}
 .excluir{
@@ -145,6 +156,14 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
   var ADMIN_EMAIL = "sbmhholding@gmail.com";
   var CHAVE_SESSAO = "sbmh.sessao";
 
+  var STATUS = {
+    vermelho: { cor: "#E24B4A", rotulo: "Venda não fechada" },
+    laranja:  { cor: "#EF9F27", rotulo: "Cliente levemente satisfeito" },
+    amarelo:  { cor: "#F0D030", rotulo: "Alta probabilidade de venda" },
+    verde:    { cor: "#3B9B4A", rotulo: "Venda fechada" }
+  };
+  var ORDEM_STATUS = ["vermelho", "laranja", "amarelo", "verde"];
+
   var telaLogin  = document.getElementById("telaLogin");
   var telaPainel = document.getElementById("telaPainel");
   var formLogin  = document.getElementById("formLogin");
@@ -191,16 +210,22 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
 
     if (c.enviado_admin) det.className += " avisada";
 
+    var corStatus = c.status && STATUS[c.status] ? STATUS[c.status].cor : "#D3D1C7";
+
     var sum = document.createElement("summary");
     sum.innerHTML =
       '<div class="esq">' +
-        '<span class="proto">' + c.protocolo +
-          (c.enviado_admin ? ' <span class="badge">Aguardando resposta</span>' : '') +
-        '</span>' +
+        '<div class="linhaProto">' +
+          '<span class="bolinha" style="background:' + corStatus + '"></span>' +
+          '<span class="proto">' + c.protocolo +
+            (c.enviado_admin ? ' <span class="badge">Aguardando resposta</span>' : '') +
+          '</span>' +
+        '</div>' +
         '<span class="prev">' + (ultima || "").replace(/</g,"&lt;") + '</span>' +
       '</div>' +
       '<span class="quando">' + formatarData(c.atualizado_em) + '</span>';
     det.appendChild(sum);
+    var bolinha = sum.querySelector(".bolinha");
 
     var corpo = document.createElement("div");
     corpo.className = "msgs";
@@ -216,6 +241,40 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
       corpo.appendChild(linha);
     });
     det.appendChild(corpo);
+
+    var statusBox = document.createElement("div");
+    statusBox.className = "statusBox";
+    ORDEM_STATUS.forEach(function(chave){
+      var info = STATUS[chave];
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "statusBtn" + (c.status === chave ? " ativo" : "");
+      b.style.setProperty("--cor", info.cor);
+      b.title = info.rotulo;
+      b.innerHTML = '<span class="dot" style="background:' + info.cor + '"></span>' + info.rotulo;
+      b.addEventListener("click", function(){
+        fetch(SB.url + "/rest/v1/conversas?protocolo=eq." + encodeURIComponent(c.protocolo), {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SB.anonKey,
+            "Authorization": "Bearer " + token,
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ status: chave })
+        })
+          .then(function(r){
+            if (!r.ok) throw new Error("falhou");
+            c.status = chave;
+            bolinha.style.background = info.cor;
+            statusBox.querySelectorAll(".statusBtn").forEach(function(el){ el.classList.remove("ativo"); });
+            b.classList.add("ativo");
+          })
+          .catch(function(){ alert("Não consegui salvar o status agora."); });
+      });
+      statusBox.appendChild(b);
+    });
+    det.appendChild(statusBox);
 
     var resp = document.createElement("form");
     resp.className = "resposta";
