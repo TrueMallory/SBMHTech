@@ -249,6 +249,7 @@ a{color:inherit}
   <div class="conta" id="conta">
     <div class="quem"><b id="contaEmail">—</b><span id="contaNome"></span></div>
     <a class="btn" id="irArea" href="index.html">Ir para o site</a>
+    <a class="btn btn-ghost" href="admin.html" id="irPainel" hidden>Painel do administrador</a>
     <button class="btn btn-ghost" type="button" id="sair">Sair da conta</button>
   </div>
 
@@ -430,6 +431,8 @@ a{color:inherit}
     conta.classList.add("on");
     lead.textContent = "Você está conectado.";
     if (SB.depoisDoLogin) document.getElementById("irArea").setAttribute("href", SB.depoisDoLogin);
+    var painel = document.getElementById("irPainel");
+    if (painel) painel.hidden = !(sessao.email && sessao.email.toLowerCase() === "sbmhholding@gmail.com");
   }
 
   document.getElementById("sair").addEventListener("click", function(){
