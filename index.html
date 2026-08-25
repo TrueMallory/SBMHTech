@@ -619,8 +619,17 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
     } catch(e){}
   })();
 
-  var protocolo = "SBMH-" + Math.random().toString(36).slice(2,6).toUpperCase()
-                          + Math.floor(Math.random()*90+10);
+  var CHAVE_PROTOCOLO = "sbmh.chat.protocolo";
+  var protocolo = (function(){
+    try {
+      var salvo = localStorage.getItem(CHAVE_PROTOCOLO);
+      if (salvo) return salvo;
+    } catch(e){}
+    var novo = "SBMH-" + Math.random().toString(36).slice(2,6).toUpperCase()
+                        + Math.floor(Math.random()*90+10);
+    try { localStorage.setItem(CHAVE_PROTOCOLO, novo); } catch(e){}
+    return novo;
+  })();
   var travado = false;
   var iniciado = false;
   var transcricao = [];
@@ -708,6 +717,8 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
     suggest.appendChild(b);
   });
 
+  retomarConversa();
+
   function iniciar(texto){
     if (iniciado) return;
     iniciado = true;
@@ -738,6 +749,31 @@ details p{margin:0 0 18px;color:var(--mute);max-width:70ch}
             if (m && m.quem === "admin"){ bolha("admin", m.texto); }
           });
         }
+      })
+      .catch(function(){});
+  }
+
+  /* retoma a conversa salva neste navegador, se o visitante já tinha começado uma antes */
+  function retomarConversa(){
+    fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SB.anonKey,
+        "Authorization": "Bearer " + SB.anonKey
+      },
+      body: JSON.stringify({ protocolo: protocolo, buscarMensagens: true })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(dados){
+        var doServidor = Array.isArray(dados.mensagens) ? dados.mensagens : [];
+        if (doServidor.length === 0 || iniciado) return;
+        iniciado = true;
+        intro.remove();
+        stage.style.justifyContent = "flex-start";
+        handoff.classList.add("on");
+        doServidor.forEach(function(m){ bolha(m.quem, m.texto); });
+        setInterval(verificarNovasMensagens, 6000);
       })
       .catch(function(){});
   }
