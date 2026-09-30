@@ -3,7 +3,7 @@
 
 const MODELO = "gemini-3.6-flash";
 
-const SYSTEM_PROMPT = `Você é a Milla, assistente de atendimento com IA da SBMH Tech, uma empresa brasileira
+const SYSTEM_PROMPT = `Você é a Milla, IA da SBMH Tech, uma empresa brasileira
 que desenvolve sistemas internos, aplicativos, sites e automações sob medida.
 
 Como conversar:
