@@ -284,6 +284,22 @@ h2{
 }
 .sec-head p{color:var(--mute);margin:0;font-size:16px}
 
+.sobre-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.sobre-texto{color:var(--mute);font-size:16px;line-height:1.75;margin:0 0 28px;max-width:56ch}
+.sobre-stats{display:flex;gap:30px;flex-wrap:wrap}
+.sobre-stats b{font-family:var(--display);font-weight:500;font-size:22px;display:block;color:var(--ink)}
+.sobre-stats span{font-size:12.5px;color:var(--mute)}
+.sobre-video{
+  border-radius:26px;overflow:hidden;position:relative;aspect-ratio:16/11;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 20px 50px rgba(0,0,0,.35),0 0 50px rgba(123,92,255,.14);
+}
+.sobre-video video{width:100%;height:100%;object-fit:cover;display:block}
+@media (max-width:820px){
+  .sobre-grid{grid-template-columns:1fr;gap:30px}
+  .sobre-video{order:-1;max-width:420px;margin:0 auto;width:100%}
+}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;background:none;border:0}
 .card{
   background:linear-gradient(155deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.025) 50%,rgba(255,255,255,.015) 100%);
@@ -391,6 +407,7 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
       <b>SBMH</b>
     </a>
     <nav class="nav-links">
+      <a href="#sobre">Quem somos</a>
       <a href="#servicos">Serviços</a>
       <a href="#processo">Processo</a>
       <a href="#duvidas">Dúvidas</a>
@@ -442,6 +459,30 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
 
     </div>
   </section>
+
+  <section class="sec" id="sobre" data-reveal>
+    <div class="wrap sobre-grid">
+      <div>
+        <div class="sec-head" style="margin-bottom:22px">
+          <p class="eyebrow">Quem somos</p>
+          <h2>Sistemas pensados pro seu negócio, não o contrário</h2>
+        </div>
+        <p class="sobre-texto">A SBMH Tech nasceu da mão de Raul Fabian, desenvolvedor de sistemas cansado de ver empresas se adaptando a softwares genéricos em vez do contrário. Hoje trabalhamos remoto para todo o Brasil, construindo sistemas, sites, aplicativos e automações sob medida — sem amarras, sem letra miúda, com o código-fonte sempre nas mãos de quem paga por ele.</p>
+        <div class="sobre-stats">
+          <div><b>100%</b><span>remoto, Brasil inteiro</span></div>
+          <div><b>100%</b><span>código é seu</span></div>
+          <div><b>48h</b><span>até a proposta fechada</span></div>
+        </div>
+      </div>
+      <div class="sobre-video">
+        <video autoplay muted loop playsinline preload="auto" aria-hidden="true">
+          <source src="assets/hero.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
 
   <section class="sec" id="servicos" data-reveal>
     <div class="wrap">
@@ -618,6 +659,7 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
         <b>SBMH Technology</b>
       </a>
       <div class="foot-meta">
+        <a href="#sobre">Quem somos</a><br>
         <a href="#servicos">Serviços</a><br>
         <a href="#processo">Processo</a><br>
         <a href="#duvidas">Dúvidas</a><br>
