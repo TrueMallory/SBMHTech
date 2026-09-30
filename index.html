@@ -152,7 +152,13 @@ header.nav,main,footer{position:relative;z-index:1}
 
 /* abertura */
 .ai-intro{margin:auto 0;text-align:center;padding:6px 0}
-.ai-intro .istar{width:30px;height:30px;color:var(--violet2);margin:0 auto 18px;filter:drop-shadow(0 0 12px rgba(168,139,255,.7))}
+.ai-intro .istar{
+  display:block;width:170px;height:auto;margin:0 auto 14px;border-radius:24px;
+  filter:drop-shadow(0 0 24px rgba(123,92,255,.45));
+  animation:floatLogo 6s ease-in-out infinite;
+}
+@keyframes floatLogo{50%{transform:translateY(-8px)}}
+@media (max-width:480px){.ai-intro .istar{width:130px}}
 .eyebrow{
   font-weight:500;font-size:11.5px;letter-spacing:.2em;
   text-transform:uppercase;color:var(--violet2);margin:0 0 14px;
@@ -197,7 +203,7 @@ header.nav,.ai-intro{animation:revealIn 1s cubic-bezier(.22,.61,.36,1) both}
 [data-reveal].in{opacity:1;filter:blur(0);transform:none}
 
 @media (prefers-reduced-motion: reduce){
-  header.nav,.ai-intro,[data-reveal]{animation:none!important;transition:none!important;opacity:1!important;filter:none!important;transform:none!important}
+  header.nav,.ai-intro,[data-reveal],.ai-intro .istar{animation:none!important;transition:none!important;opacity:1!important;filter:none!important;transform:none!important}
 }
 .msg .av{
   width:30px;height:30px;flex:0 0 auto;border-radius:50%;
@@ -402,7 +408,9 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
 
       <div class="ai-stage" id="stage">
         <div class="ai-intro" id="intro">
-          <svg class="istar" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
+          <video class="istar" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+            <source src="assets/hero.mp4" type="video/mp4">
+          </video>
           <p class="eyebrow">Milla</p>
           <h1>Em que a <span class="chrome">Milla</span> pode ajudar?</h1>
           <p>Descreva seu projeto aqui. Sistemas, aplicativos, sites e automações sob medida — conversa anônima, sem cadastro, com resposta em até 24 horas.</p>
