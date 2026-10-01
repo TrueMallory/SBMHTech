@@ -328,6 +328,18 @@ h2{
 .chips-static{display:flex;flex-wrap:wrap;gap:8px}
 .tag{font-size:13px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:8px 15px;color:var(--ink-2)}
 
+.projeto-head{max-width:62ch;margin-bottom:26px}
+.projeto-head h3{font-family:var(--display);font-weight:500;font-size:22px;margin:0 0 10px}
+.projeto-head p{color:var(--mute);font-size:15.5px;line-height:1.65;margin:0 0 16px}
+.projeto-galeria{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.projeto-galeria img{
+  width:100%;border-radius:18px;border:1px solid rgba(255,255,255,.1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 16px 40px rgba(0,0,0,.35);
+  transition:transform .3s ease,box-shadow .3s ease;
+}
+.projeto-galeria img:hover{transform:translateY(-4px);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 20px 50px rgba(0,0,0,.4),0 0 28px rgba(123,92,255,.18)}
+@media (max-width:760px){.projeto-galeria{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
+
 .logo-grid{display:flex;flex-wrap:wrap;gap:12px}
 .logo-card{
   height:76px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);
@@ -407,6 +419,7 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
     <nav class="nav-links">
       <a href="#sobre">Quem somos</a>
       <a href="#servicos">Serviços</a>
+      <a href="#portfolio">Portfólio</a>
       <a href="#processo">Processo</a>
       <a href="#duvidas">Dúvidas</a>
       <a class="keep" href="entrar.html" id="navEntrar">Entrar</a>
@@ -564,6 +577,34 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
 
   <hr class="rule">
 
+  <section class="sec" id="portfolio" data-reveal>
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">Portfólio</p>
+        <h2>Apps que já colocamos no ar</h2>
+        <p>Projetos reais, do primeiro rascunho ao app funcionando na mão do usuário.</p>
+      </div>
+      <div class="projeto">
+        <div class="projeto-head">
+          <h3>Pupyz</h3>
+          <p>App de pet care: carteirinha de vacinas com alerta de dose, acompanhamento ao vivo do taxidog no mapa e um painel próprio pra equipe do petshop.</p>
+          <div class="chips-static">
+            <span class="tag">Supabase Realtime</span>
+            <span class="tag">expo-location</span>
+            <span class="tag">Maps</span>
+          </div>
+        </div>
+        <div class="projeto-galeria">
+          <img src="assets/pupyz-1.webp" alt="Tela de carteirinha de vacinas do app Pupyz">
+          <img src="assets/pupyz-2.webp" alt="Tela de acompanhamento ao vivo do taxidog no app Pupyz">
+          <img src="assets/pupyz-3.webp" alt="Painel da equipe do petshop no app Pupyz">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
   <section class="sec" id="processo" data-reveal>
     <div class="wrap">
       <div class="sec-head">
@@ -698,6 +739,7 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
       <div class="foot-meta">
         <a href="#sobre">Quem somos</a><br>
         <a href="#servicos">Serviços</a><br>
+        <a href="#portfolio">Portfólio</a><br>
         <a href="#processo">Processo</a><br>
         <a href="#duvidas">Dúvidas</a><br>
         <a href="#chat">Falar com o administrador</a>
