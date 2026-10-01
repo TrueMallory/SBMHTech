@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { historico, protocolo, marcarEnviado, mensagemAdmin, buscarMensagens } = await req.json();
+    const { historico, protocolo, nome, marcarEnviado, mensagemAdmin, buscarMensagens } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -164,6 +164,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           protocolo,
+          ...(typeof nome === "string" && nome ? { nome } : {}),
           enviado_admin: true,
           atualizado_em: new Date().toISOString(),
         }),
@@ -249,6 +250,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             protocolo,
+            ...(typeof nome === "string" && nome ? { nome } : {}),
             mensagens: mensagensCompletas,
             atualizado_em: new Date().toISOString(),
           }),

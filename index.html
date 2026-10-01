@@ -893,7 +893,7 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
         "apikey": SB.anonKey,
         "Authorization": "Bearer " + SB.anonKey
       },
-      body: JSON.stringify({ historico: mensagensIA, protocolo: protocolo })
+      body: JSON.stringify({ historico: mensagensIA, protocolo: protocolo, nome: (sessaoDeChat() && sessaoDeChat().nome) || "" })
     })
       .then(function(r){ return r.json(); })
       .then(function(dados){
@@ -1006,7 +1006,7 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
         "apikey": SB.anonKey,
         "Authorization": "Bearer " + SB.anonKey
       },
-      body: JSON.stringify({ protocolo: protocolo, marcarEnviado: true })
+      body: JSON.stringify({ protocolo: protocolo, marcarEnviado: true, nome: (sessaoDeChat() && sessaoDeChat().nome) || "" })
     })
       .then(function(r){ return r.json(); })
       .then(function(dados){

@@ -212,12 +212,15 @@ label{display:block;font-size:12.5px;font-weight:600;letter-spacing:.04em;margin
 
     var corStatus = c.status && STATUS[c.status] ? STATUS[c.status].cor : "#D3D1C7";
 
+    var nomeBruto = (c.nome && c.nome.trim()) ? c.nome.trim() : c.protocolo;
+    var nomeExibido = nomeBruto.replace(/</g,"&lt;");
+
     var sum = document.createElement("summary");
     sum.innerHTML =
       '<div class="esq">' +
         '<div class="linhaProto">' +
           '<span class="bolinha" style="background:' + corStatus + '"></span>' +
-          '<span class="proto">' + c.protocolo +
+          '<span class="proto">' + nomeExibido +
             (c.enviado_admin ? ' <span class="badge">Aguardando resposta</span>' : '') +
           '</span>' +
         '</div>' +
