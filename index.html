@@ -66,7 +66,7 @@ body::before{
     radial-gradient(520px 420px at 6% 55%,rgba(61,139,255,.08),transparent 70%),
     radial-gradient(520px 320px at 92% 92%,rgba(255,61,110,.06),transparent 70%);
 }
-header.nav,main,footer{position:relative;z-index:1}
+main,footer{position:relative;z-index:1}
 
 .mark{background-image:url("assets/logo-mark.png");background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 0 10px rgba(168,139,255,.5))}
 
@@ -96,13 +96,34 @@ header.nav,main,footer{position:relative;z-index:1}
   transition:color .18s ease,background .18s ease;
 }
 .nav-links a:hover{color:var(--ink);background:rgba(255,255,255,.07)}
-@media (max-width:820px){.nav-links a:not(.btn):not(.keep){display:none}}
+
+.menu-toggle{
+  display:none;flex:0 0 auto;width:36px;height:36px;margin-left:4px;
+  align-items:center;justify-content:center;border:0;border-radius:50%;
+  background:transparent;color:var(--ink);cursor:pointer;
+}
+.menu-toggle:hover{background:rgba(255,255,255,.08)}
+.menu-toggle svg{width:20px;height:20px}
+
+@media (max-width:820px){
+  .menu-toggle{display:flex}
+  .nav-links{
+    position:absolute;top:calc(100% + 10px);left:0;right:0;z-index:50;
+    flex-direction:column;align-items:stretch;gap:3px;
+    background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.015)),rgba(16,13,30,.92);
+    backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);
+    border:1px solid rgba(255,255,255,.13);border-radius:20px;padding:10px;
+    opacity:0;visibility:hidden;transform:translateY(-8px);pointer-events:none;
+    transition:opacity .2s ease,transform .2s ease,visibility .2s;
+  }
+  .nav-links.open{opacity:1;visibility:visible;transform:none;pointer-events:auto}
+  .nav-links a{display:block;text-align:left;padding:13px 16px}
+  .nav-links a.btn{text-align:center;margin-top:4px}
+}
 @media (max-width:480px){
   .nav-in{gap:10px;padding:0 6px 0 16px}
   .brand b{font-size:12px;letter-spacing:.04em}
   .brand .mark{width:26px;height:26px}
-  .nav-links{gap:4px}
-  .nav-links a.keep{font-size:11px;letter-spacing:.04em;padding:8px 10px}
 }
 @media (max-width:360px){.brand b{display:none}}
 
@@ -404,7 +425,7 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
       <span class="mark" role="img" aria-label="SBMH Technology"></span>
       <b>SBMH</b>
     </a>
-    <nav class="nav-links">
+    <nav class="nav-links" id="navLinks">
       <a href="#sobre">Quem somos</a>
       <a href="#servicos">Serviços</a>
       <a href="portfolio.html">Portfólio</a>
@@ -413,6 +434,9 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
       <a class="keep" href="entrar.html" id="navEntrar">Entrar</a>
       <a class="btn btn-sm" href="#chat">Falar agora</a>
     </nav>
+    <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="navLinks">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
   </div>
 </header>
 
@@ -748,6 +772,28 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
   var handoff = document.getElementById("handoff");
   var anoEl   = document.getElementById("ano");
   if (anoEl) anoEl.textContent = new Date().getFullYear();
+
+  /* menu mobile expansivo */
+  (function(){
+    var botao = document.getElementById("menuToggle");
+    var links = document.getElementById("navLinks");
+    if (!botao || !links) return;
+    function fechar(){
+      links.classList.remove("open");
+      botao.setAttribute("aria-expanded", "false");
+    }
+    botao.addEventListener("click", function(){
+      var aberto = links.classList.toggle("open");
+      botao.setAttribute("aria-expanded", aberto ? "true" : "false");
+    });
+    links.addEventListener("click", function(e){
+      if (e.target.tagName === "A") fechar();
+    });
+    document.addEventListener("click", function(e){
+      if (!links.classList.contains("open")) return;
+      if (!links.contains(e.target) && e.target !== botao && !botao.contains(e.target)) fechar();
+    });
+  })();
 
   function sessaoDeChat(){
     try { return JSON.parse(localStorage.getItem("sbmh.sessao") || "null"); } catch(e){ return null; }
