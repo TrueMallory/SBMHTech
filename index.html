@@ -58,13 +58,21 @@ a{color:inherit}
 .rule{border:0;border-top:1px solid var(--line);margin:0}
 .star{display:block}
 
-/* ambient glow behind everything */
+/* ambient glow behind everything — deriva lenta, estilo Apple */
 body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  content:"";position:fixed;inset:-12%;pointer-events:none;z-index:0;
   background:
     radial-gradient(640px 420px at 78% 6%,rgba(109,77,255,.20),transparent 70%),
     radial-gradient(520px 420px at 6% 55%,rgba(61,139,255,.08),transparent 70%),
     radial-gradient(520px 320px at 92% 92%,rgba(255,61,110,.06),transparent 70%);
+  background-repeat:no-repeat;
+  animation:auroraDrift 34s ease-in-out infinite alternate;
+  will-change:background-position,opacity;
+}
+@keyframes auroraDrift{
+  0%  {background-position:0% 0%,   0% 0%,   0% 0%;   opacity:.85}
+  50% {background-position:-7% 5%,  6% -5%,  -5% -6%; opacity:1}
+  100%{background-position:5% -4%,  -6% 6%,  7% 5%;    opacity:.9}
 }
 main,footer{position:relative;z-index:1}
 
