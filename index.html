@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="SBMH Technology — sistemas web, aplicativos, sites e automações sob medida. Crie sua conta gratuita e fale com a Milla.">
-<meta name="theme-color" content="#08070f">
+<meta name="theme-color" content="#000000">
 <meta property="og:title" content="SBMH Technology">
 <meta property="og:description" content="Sistemas web, aplicativos, sites e automações sob medida. Crie sua conta gratuita e fale com a Milla.">
 <meta property="og:type" content="website">
@@ -417,6 +417,118 @@ details p{margin:0 2px 18px;color:var(--mute);max-width:70ch}
 .wa-float svg{width:27px;height:27px}
 .wa-float:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(18,140,74,.6)}
 @media (prefers-reduced-motion: reduce){.wa-float{transition:none}.wa-float:hover{transform:none}}
+
+/* ================= LIQUID GLASS CHROME ================= */
+:root{
+  --paper:#000;
+  --ink:#f2f5ff;
+  --ink-2:#c3cbe6;
+  --mute:#8790b0;
+  --line:rgba(130,160,255,.16);
+  --wash:rgba(90,130,255,.09);
+  --violet:#2f5bff;
+  --violet2:#8fb0ff;
+  --glow:#3a6bff;
+  --rim:conic-gradient(#1a2a8a 0deg,#6f95ff 30deg,#fff 45deg,#ffc2ec 55deg,#3b5bff 70deg,#0d1650 95deg,#5a7dff 120deg,#f4f7ff 135deg,#ff9ad5 150deg,#8f7bff 165deg,#e8eeff 180deg,#4a6cff 200deg,#fff 225deg,#9fb6ff 240deg,#0d1650 270deg,#4d70ff 300deg,#fff 315deg,#b9cbff 330deg,#1a2a8a 360deg);
+  --inner:inset 0 1px 1px rgba(255,255,255,.35),inset 0 0 24px rgba(70,120,255,.2);
+  --bloom:0 0 30px rgba(45,95,255,.26),0 22px 60px rgba(0,0,0,.6);
+}
+body::before{
+  background:
+    radial-gradient(700px 460px at 80% 4%,rgba(40,90,255,.22),transparent 70%),
+    radial-gradient(560px 440px at 4% 52%,rgba(30,60,220,.13),transparent 70%),
+    radial-gradient(520px 340px at 92% 94%,rgba(255,90,200,.07),transparent 70%);
+  background-repeat:no-repeat;
+}
+
+/* aro cromado iridescente */
+.nav-in,.ai-wrap,.card,.band,.composer,.sug,.logo-card,.btn-ghost{position:relative}
+.nav-in::after,.ai-wrap::after,.card::after,.band::after,.sobre-video::after,
+.composer::after,.sug::after,.logo-card::after,.btn-ghost::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:var(--rim-w,1.5px);
+  background:var(--rim);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  pointer-events:none;z-index:2;
+}
+
+.mark{filter:drop-shadow(0 0 10px rgba(90,130,255,.55))}
+.nav-in{
+  --rim-w:2px;border-color:transparent;
+  background:linear-gradient(180deg,#111938,#02030a);
+  box-shadow:var(--inner),0 0 26px rgba(45,95,255,.22),0 12px 34px rgba(0,0,0,.6);
+}
+.nav-links a:hover{background:rgba(90,130,255,.12)}
+.menu-toggle:hover{background:rgba(90,130,255,.14)}
+.nav-links a.btn{color:#fff}
+@media (max-width:820px){
+  .nav-links{
+    border-color:transparent;
+    background:linear-gradient(180deg,#0e142e,#010208);
+    box-shadow:var(--inner),var(--bloom);
+  }
+  .nav-links::after{
+    content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:var(--rim);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;
+  }
+}
+
+.btn{
+  background:linear-gradient(180deg,#5d88ff 0%,#2a4ff2 52%,#1532b4 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -3px 8px rgba(0,8,60,.45),0 0 0 1px rgba(175,200,255,.4),0 8px 26px rgba(40,90,255,.45);
+}
+.btn:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -3px 8px rgba(0,8,60,.45),0 0 0 1px rgba(200,220,255,.6),0 12px 34px rgba(50,100,255,.65)}
+.btn-ghost{background:rgba(4,6,16,.7);box-shadow:var(--inner)}
+.btn-ghost:hover{background:rgba(30,50,120,.25);box-shadow:inset 0 1px 1px rgba(255,255,255,.45),inset 0 0 22px rgba(70,120,255,.3),0 0 22px rgba(45,95,255,.3)}
+
+.ai-wrap{
+  --rim-w:3px;border-color:transparent;
+  background:
+    radial-gradient(72% 15% at 50% 13%,rgba(35,85,255,.26),transparent 72%),
+    radial-gradient(72% 15% at 50% 72%,rgba(35,85,255,.2),transparent 72%),
+    linear-gradient(180deg,rgba(6,9,24,.9),rgba(1,2,8,.94));
+  box-shadow:inset 0 2px 2px rgba(255,255,255,.3),inset 0 0 46px rgba(60,110,255,.22),0 0 64px rgba(40,90,255,.26),0 30px 80px rgba(0,0,0,.7);
+}
+.ai-wrap::before{background:radial-gradient(110% 45% at 0% 0%,rgba(190,210,255,.07),transparent 55%)}
+.ai-intro .istar{filter:drop-shadow(0 0 14px rgba(110,150,255,.85))}
+.chrome{
+  background:linear-gradient(100deg,#fff 8%,#d4e2ff 28%,#5b84ff 50%,#ff9ad5 72%,#eef3ff 92%);
+  -webkit-background-clip:text;background-clip:text;
+}
+.sug{--rim-w:1px;border-color:transparent;background:rgba(10,16,40,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.sug::after{opacity:.55;transition:opacity .2s ease}
+.sug:hover{border-color:transparent;background:rgba(40,80,220,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 0 22px rgba(45,95,255,.28)}
+.sug:hover::after{opacity:1}
+.msg .av{background:radial-gradient(circle at 35% 30%,#d6e4ff,#3a6bff 45%,#0a1660);box-shadow:inset 0 1px 1px rgba(255,255,255,.6),0 0 14px rgba(50,100,255,.6)}
+.msg.me .body{background:linear-gradient(180deg,#5582ff,#2244e6 60%,#1733c0);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 0 1px rgba(170,195,255,.3),0 6px 22px rgba(40,90,255,.38)}
+.composer{--rim-w:1.5px;border-color:transparent;background:rgba(2,4,12,.7);box-shadow:inset 0 1px 1px rgba(255,255,255,.18),inset 0 0 18px rgba(60,110,255,.12)}
+.composer::after{opacity:.7}
+.composer:focus-within{border-color:transparent;box-shadow:inset 0 1px 1px rgba(255,255,255,.25),inset 0 0 22px rgba(60,110,255,.22),0 0 26px rgba(45,95,255,.35)}
+.composer:focus-within::after{opacity:1}
+.send{background:linear-gradient(180deg,#5d88ff,#2a4ff2 55%,#1532b4);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 0 1px rgba(175,200,255,.4),0 6px 18px rgba(40,90,255,.5)}
+.send:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 0 1px rgba(200,220,255,.6),0 8px 24px rgba(50,100,255,.7)}
+
+.sobre-video{--rim-w:2px;border-color:transparent;box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 0 50px rgba(40,90,255,.28),0 24px 60px rgba(0,0,0,.6)}
+.card{
+  --rim-w:2px;border-color:transparent;
+  background:radial-gradient(90% 55% at 50% 0%,rgba(40,90,255,.2),transparent 70%),linear-gradient(180deg,rgba(8,12,30,.86),rgba(1,2,8,.92));
+  box-shadow:var(--inner),0 18px 50px rgba(0,0,0,.55);
+}
+.card::after{opacity:.75;transition:opacity .3s ease}
+.card:hover{border-color:transparent;box-shadow:inset 0 1px 1px rgba(255,255,255,.45),inset 0 0 30px rgba(70,120,255,.3),0 0 40px rgba(45,95,255,.35),0 22px 60px rgba(0,0,0,.6)}
+.card:hover::after{opacity:1}
+.card .star{background:radial-gradient(circle at 35% 30%,#d6e4ff,#3a6bff 45%,#0a1660);box-shadow:inset 0 1px 1px rgba(255,255,255,.6),0 8px 22px rgba(40,90,255,.45)}
+.logo-card{--rim-w:1px;border-color:transparent;background:rgba(6,9,22,.6)}
+.logo-card:hover{border-color:transparent;box-shadow:0 0 22px rgba(45,95,255,.3)}
+.band{
+  --rim-w:3px;border-color:transparent;
+  background:
+    radial-gradient(70% 40% at 50% 0%,rgba(35,85,255,.28),transparent 72%),
+    radial-gradient(60% 35% at 50% 100%,rgba(35,85,255,.16),transparent 72%),
+    linear-gradient(180deg,rgba(6,9,24,.9),rgba(1,2,8,.94));
+  box-shadow:inset 0 2px 2px rgba(255,255,255,.3),inset 0 0 46px rgba(60,110,255,.2),0 0 64px rgba(40,90,255,.24),0 30px 80px rgba(0,0,0,.7);
+}
 
 </style>
 </head>
