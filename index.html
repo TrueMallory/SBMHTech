@@ -13,7 +13,7 @@
 <title>SBMH Technology</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500;700&family=Inter:opsz,wght@14..32,400..700&display=swap">
 <style>
 :root{
   --paper:#08070f;
@@ -538,6 +538,14 @@ body::before{
     linear-gradient(180deg,rgba(6,9,24,.9),rgba(1,2,8,.94));
   box-shadow:inset 0 2px 2px rgba(255,255,255,.3),inset 0 0 46px rgba(60,110,255,.2),0 0 64px rgba(40,90,255,.24),0 30px 80px rgba(0,0,0,.7);
 }
+
+/* títulos no estilo Apple: SF Pro nativa em aparelhos Apple, Inter Display nos demais */
+:root{--headline:-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Arial,sans-serif}
+h1,h2,h3,.card h3,.step h3,.projeto-head h3,.sobre-stats b{font-family:var(--headline);font-optical-sizing:auto;letter-spacing:-.022em}
+h1{font-weight:700;font-size:clamp(30px,4.8vw,50px);line-height:1.06}
+h2{font-weight:700;font-size:clamp(26px,3.6vw,44px);line-height:1.08}
+h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
+.sobre-stats b{font-weight:700}
 
 </style>
 </head>
