@@ -2,6 +2,10 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>
+// links de confirmação e de recuperação de senha do Supabase voltam pra raiz do site
+if (/(^|[#&])(access_token|error_code)=/.test(location.hash)) location.replace("entrar.html" + location.hash);
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="SBMH Technology — sistemas web, aplicativos, sites e automações sob medida. Crie sua conta gratuita e fale com a Milla.">
 <meta name="theme-color" content="#000000">

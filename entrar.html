@@ -22,6 +22,7 @@
   --body:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{
   margin:0;background:var(--wash);color:var(--ink);
   font-family:var(--body);font-size:17px;line-height:1.6;
@@ -531,23 +532,49 @@ a{color:inherit}
       .catch(function(){ dizer("Não conseguimos falar com o servidor agora. Verifique sua conexão."); });
   });
 
-  /* ---------------- definir nova senha (volta do e-mail) ---------------- */
+  /* ---------------- volta do e-mail: confirmação de conta, nova senha ou link vencido ---------------- */
   var tokenRecuperacao = null;
-  (function checarRecuperacao(){
+  function lerToken(jwt){
+    try {
+      var b = jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      var bytes = Uint8Array.from(atob(b), function(c){ return c.charCodeAt(0); });
+      return JSON.parse(new TextDecoder().decode(bytes));
+    } catch(e){ return {}; }
+  }
+  (function checarRetornoDoEmail(){
     var h = location.hash.replace(/^#/, "");
-    if (!h || h.indexOf("access_token") === -1) return;
+    if (!h || !/(^|&)(access_token|error_code|error)=/.test(h)) return;
     var p = {};
     h.split("&").forEach(function(par){
       var kv = par.split("=");
-      p[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1] || "");
+      p[decodeURIComponent(kv[0])] = decodeURIComponent((kv[1] || "").replace(/\+/g, " "));
     });
-    if (p.type !== "recovery" || !p.access_token) return;
-    tokenRecuperacao = p.access_token;
     history.replaceState(null, "", location.pathname + location.search);
-    tabs.style.display = "none";
-    formEntrar.classList.remove("on"); formEntrar.hidden = true;
-    formNova.classList.add("on");      formNova.hidden = false;
-    lead.textContent = "Escolha uma nova senha para a sua conta.";
+
+    if (p.error || p.error_code){
+      trocar("entrar");
+      dizer(p.error_code === "otp_expired"
+        ? "Esse link já foi usado ou expirou. Se você já tinha clicado nele, sua conta já está confirmada: é só entrar com seu e-mail e senha."
+        : "Não foi possível validar o link do e-mail. Tente entrar com seu e-mail e senha.");
+      return;
+    }
+    if (!p.access_token) return;
+
+    if (p.type === "recovery"){
+      tokenRecuperacao = p.access_token;
+      tabs.style.display = "none";
+      formEntrar.classList.remove("on"); formEntrar.hidden = true;
+      formNova.classList.add("on");      formNova.hidden = false;
+      lead.textContent = "Escolha uma nova senha para a sua conta.";
+      return;
+    }
+
+    var dados = lerToken(p.access_token);
+    var meta = dados.user_metadata || {};
+    var sessao = { token: p.access_token, refresh: p.refresh_token, email: dados.email || "", nome: meta.nome || "" };
+    guardar(sessao);
+    mostrarConta(sessao);
+    dizer("E-mail confirmado! Sua conta está ativa e você já está conectado.", true);
   })();
 
   formNova.addEventListener("submit", function(e){
