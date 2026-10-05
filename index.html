@@ -79,7 +79,7 @@ body::before{
 }
 main,footer{position:relative;z-index:1}
 
-.mark{background-image:url("assets/logo-mark.png");background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 0 10px rgba(168,139,255,.5))}
+.mark{background-image:url("assets/logo-mark.webp");background-size:contain;background-repeat:no-repeat;background-position:center;filter:drop-shadow(0 0 10px rgba(168,139,255,.5))}
 
 /* ---------- nav ---------- */
 .nav{
@@ -970,12 +970,24 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
         </div>
       </div>
       <div class="sobre-video">
-        <video id="videoSobre" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+        <video id="videoSobre" muted loop playsinline preload="none" aria-hidden="true">
           <source src="assets/sobre.mp4" type="video/mp4">
         </video>
       </div>
     </div>
   </section>
+
+  <script>
+  (function(){
+    "use strict";
+    var v = document.getElementById("videoSobre");
+    if (!v) return;
+    if (!("IntersectionObserver" in window)){ v.play().catch(function(){}); return; }
+    new IntersectionObserver(function(es){
+      if (es[0].isIntersecting) v.play().catch(function(){}); else v.pause();
+    }, { rootMargin: "200px 0px" }).observe(v);
+  })();
+  </script>
 
 
   <section class="sec" id="reels" data-reveal>
@@ -1988,6 +2000,46 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
   function sessaoDeChat(){
     try { return JSON.parse(localStorage.getItem("sbmh.sessao") || "null"); } catch(e){ return null; }
   }
+  function lerJwt(token){
+    try {
+      var b = String(token).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      return JSON.parse(decodeURIComponent(escape(atob(b))));
+    } catch(e){ return {}; }
+  }
+  // o servidor da Milla só atende o próprio cliente: manda o login dele e renova antes de vencer
+  function tokenDoCliente(){
+    var s = sessaoDeChat();
+    if (!s || !s.token) return Promise.resolve(null);
+    var vence = (lerJwt(s.token).exp || 0) * 1000;
+    if (vence - Date.now() > 60000 || !s.refresh) return Promise.resolve(s.token);
+    return fetch(SB.url.replace(/\/+$/,"") + "/auth/v1/token?grant_type=refresh_token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SB.anonKey },
+      body: JSON.stringify({ refresh_token: s.refresh })
+    })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if (!d || !d.access_token) return s.token;
+        s.token = d.access_token;
+        s.refresh = d.refresh_token || s.refresh;
+        try { localStorage.setItem("sbmh.sessao", JSON.stringify(s)); } catch(e){}
+        return s.token;
+      })
+      .catch(function(){ return s.token; });
+  }
+  function chamarChat(corpo){
+    return tokenDoCliente().then(function(token){
+      return fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SB.anonKey,
+          "Authorization": "Bearer " + (token || SB.anonKey)
+        },
+        body: corpo
+      });
+    });
+  }
   var logado = !!(sessaoDeChat() && sessaoDeChat().token);
 
   /* mostra o nome de quem já está logado (conta criada em entrar.html) */
@@ -2017,7 +2069,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
     if (aiFoot) aiFoot.style.display = "none";
   }
 
-  var CHAVE_PROTOCOLO = "sbmh.chat.protocolo";
+  var CHAVE_PROTOCOLO = "sbmh.chat.protocolo." + (lerJwt((sessaoDeChat() || {}).token).sub || "visitante");
   var protocolo = (function(){
     try {
       var salvo = localStorage.getItem(CHAVE_PROTOCOLO);
@@ -2076,15 +2128,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
   function perguntarIA(){
     travado = true;
     digitando();
-    fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SB.anonKey,
-        "Authorization": "Bearer " + SB.anonKey
-      },
-      body: JSON.stringify({ historico: mensagensIA, protocolo: protocolo, nome: (sessaoDeChat() && sessaoDeChat().nome) || "" })
-    })
+    chamarChat(JSON.stringify({ historico: mensagensIA, protocolo: protocolo, nome: (sessaoDeChat() && sessaoDeChat().nome) || "" }))
       .then(function(r){ return r.json(); })
       .then(function(dados){
         paraDigitar();
@@ -2130,15 +2174,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
   /* checa se o administrador respondeu pelo painel */
   function verificarNovasMensagens(){
-    fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SB.anonKey,
-        "Authorization": "Bearer " + SB.anonKey
-      },
-      body: JSON.stringify({ protocolo: protocolo, buscarMensagens: true })
-    })
+    chamarChat(JSON.stringify({ protocolo: protocolo, buscarMensagens: true }))
       .then(function(r){ return r.json(); })
       .then(function(dados){
         var doServidor = Array.isArray(dados.mensagens) ? dados.mensagens : [];
@@ -2153,15 +2189,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
   /* retoma a conversa salva neste navegador, se o visitante já tinha começado uma antes */
   function retomarConversa(){
-    fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SB.anonKey,
-        "Authorization": "Bearer " + SB.anonKey
-      },
-      body: JSON.stringify({ protocolo: protocolo, buscarMensagens: true })
-    })
+    chamarChat(JSON.stringify({ protocolo: protocolo, buscarMensagens: true }))
       .then(function(r){ return r.json(); })
       .then(function(dados){
         var doServidor = Array.isArray(dados.mensagens) ? dados.mensagens : [];
@@ -2189,15 +2217,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
   document.getElementById("avisarAdmin").addEventListener("click", function(){
     var btn = this;
     btn.disabled = true; btn.textContent = "Enviando…";
-    fetch(SB.url.replace(/\/+$/,"") + "/functions/v1/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SB.anonKey,
-        "Authorization": "Bearer " + SB.anonKey
-      },
-      body: JSON.stringify({ protocolo: protocolo, marcarEnviado: true, nome: (sessaoDeChat() && sessaoDeChat().nome) || "" })
-    })
+    chamarChat(JSON.stringify({ protocolo: protocolo, marcarEnviado: true, nome: (sessaoDeChat() && sessaoDeChat().nome) || "" }))
       .then(function(r){ return r.json(); })
       .then(function(dados){
         if (!dados.ok){ throw new Error("falhou"); }

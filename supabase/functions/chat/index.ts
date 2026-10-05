@@ -40,20 +40,42 @@ const CORS = {
 
 const ADMIN_EMAIL = "sbmhholding@gmail.com";
 
-// lê o e-mail de dentro do token já validado pela plataforma (JWT verify está ligado na função)
-function emailDoPedido(req: Request): string | null {
+// a assinatura do token já foi validada pela plataforma (JWT verify ligado na função); aqui só lemos o conteúdo
+function lerToken(req: Request): Record<string, any> | null {
   const auth = req.headers.get("authorization") || "";
-  const token = auth.replace(/^Bearer\s+/i, "");
-  const partes = token.split(".");
+  const partes = auth.replace(/^Bearer\s+/i, "").split(".");
   if (partes.length < 2) return null;
   try {
     let b64 = partes[1].replace(/-/g, "+").replace(/_/g, "/");
     while (b64.length % 4) b64 += "=";
-    const payload = JSON.parse(atob(b64));
-    return typeof payload.email === "string" ? payload.email : null;
+    return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))));
   } catch {
     return null;
   }
+}
+
+function emailDoPedido(req: Request): string | null {
+  const p = lerToken(req);
+  return p && typeof p.email === "string" ? p.email : null;
+}
+
+function usuarioDoPedido(req: Request): { id: string; nome: string } | null {
+  const p = lerToken(req);
+  if (!p || p.role !== "authenticated" || typeof p.sub !== "string") return null;
+  return { id: p.sub, nome: typeof p.user_metadata?.nome === "string" ? p.user_metadata.nome : "" };
+}
+
+function json(corpo: unknown, status = 200) {
+  return new Response(JSON.stringify(corpo), { status, headers: { ...CORS, "content-type": "application/json" } });
+}
+
+// conversa sem dono (anterior a esta regra) ou de outra conta não pode ser usada pelo cliente
+async function conversaLivreOuDele(url: string, chave: string, protocolo: string, userId: string): Promise<boolean> {
+  const r = await fetch(`${url}/rest/v1/conversas?protocolo=eq.${encodeURIComponent(protocolo)}&select=user_id`, {
+    headers: { apikey: chave, Authorization: `Bearer ${chave}` },
+  }).then((x) => x.json());
+  if (!Array.isArray(r) || r.length === 0) return true;
+  return r[0].user_id === userId;
 }
 
 Deno.serve(async (req) => {
@@ -122,16 +144,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // cliente checando se o administrador já respondeu
+    const usuario = usuarioDoPedido(req);
+    if (!usuario) return json({ erro: "Entre na sua conta para conversar." }, 401);
+    if (typeof protocolo !== "string" || !protocolo || !supabaseUrl || !serviceKey) {
+      return json({ erro: "Requisição inválida." }, 400);
+    }
+    const nomeCliente = usuario.nome || (typeof nome === "string" ? nome : "");
+
+    // cliente checando se o administrador já respondeu (só enxerga as próprias conversas)
     if (buscarMensagens) {
-      if (typeof protocolo !== "string" || !protocolo || !supabaseUrl || !serviceKey) {
-        return new Response(JSON.stringify({ erro: "Protocolo obrigatório." }), {
-          status: 400,
-          headers: { ...CORS, "content-type": "application/json" },
-        });
-      }
       const linha = await fetch(
-        `${supabaseUrl}/rest/v1/conversas?protocolo=eq.${encodeURIComponent(protocolo)}&select=mensagens`,
+        `${supabaseUrl}/rest/v1/conversas?protocolo=eq.${encodeURIComponent(protocolo)}&user_id=eq.${usuario.id}&select=mensagens`,
         { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
       ).then((r) => r.json());
       const mensagens = Array.isArray(linha?.[0]?.mensagens) ? linha[0].mensagens : [];
@@ -141,19 +164,11 @@ Deno.serve(async (req) => {
     }
 
     // aviso rápido: "enviar conversa ao administrador" — não chama a IA, só sinaliza no banco
+    if (!(await conversaLivreOuDele(supabaseUrl, serviceKey, protocolo, usuario.id))) {
+      return json({ erro: "Conversa de outra conta." }, 403);
+    }
+
     if (marcarEnviado) {
-      if (typeof protocolo !== "string" || !protocolo) {
-        return new Response(JSON.stringify({ erro: "Protocolo obrigatório." }), {
-          status: 400,
-          headers: { ...CORS, "content-type": "application/json" },
-        });
-      }
-      if (!supabaseUrl || !serviceKey) {
-        return new Response(JSON.stringify({ erro: "Configuração do servidor ausente." }), {
-          status: 500,
-          headers: { ...CORS, "content-type": "application/json" },
-        });
-      }
       const upsert = await fetch(`${supabaseUrl}/rest/v1/conversas?on_conflict=protocolo`, {
         method: "POST",
         headers: {
@@ -164,7 +179,8 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           protocolo,
-          ...(typeof nome === "string" && nome ? { nome } : {}),
+          user_id: usuario.id,
+          ...(nomeCliente ? { nome: nomeCliente } : {}),
           enviado_admin: true,
           atualizado_em: new Date().toISOString(),
         }),
@@ -250,7 +266,8 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             protocolo,
-            ...(typeof nome === "string" && nome ? { nome } : {}),
+            user_id: usuario.id,
+            ...(nomeCliente ? { nome: nomeCliente } : {}),
             mensagens: mensagensCompletas,
             atualizado_em: new Date().toISOString(),
           }),
