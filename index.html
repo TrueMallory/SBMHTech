@@ -366,17 +366,7 @@ h2{
 .step h3{font-family:var(--display);font-weight:500;font-size:17px;margin:0 0 6px}
 .step p{margin:0;color:var(--mute);font-size:14.5px}
 
-.chips-static{display:flex;flex-wrap:wrap;gap:8px}
-.tag{font-size:13px;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:8px 15px;color:var(--ink-2)}
 
-.logo-grid{display:flex;flex-wrap:wrap;gap:12px}
-.logo-card{
-  height:76px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);
-  overflow:hidden;display:flex;align-items:center;
-  transition:transform .18s ease,border-color .18s ease;
-}
-.logo-card:hover{transform:translateY(-2px);border-color:var(--violet2)}
-.logo-card img{height:100%;width:auto;display:block}
 
 .faq{border-top:1px solid var(--line)}
 details{border-bottom:1px solid var(--line)}
@@ -453,9 +443,9 @@ body::before{
 }
 
 /* aro cromado iridescente */
-.nav-in,.ai-wrap,.card,.band,.composer,.sug,.logo-card,.btn-ghost{position:relative}
+.nav-in,.ai-wrap,.card,.band,.composer,.sug,.btn-ghost{position:relative}
 .nav-in::after,.ai-wrap::after,.band::after,
-.composer::after,.sug::after,.logo-card::after,.btn-ghost::after{
+.composer::after,.sug::after,.btn-ghost::after{
   content:"";position:absolute;inset:0;border-radius:inherit;padding:var(--rim-w,1.5px);
   background:var(--rim);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
@@ -529,9 +519,9 @@ body::before{
   box-shadow:inset 0 0 24px rgba(70,120,255,.2),0 18px 50px rgba(0,0,0,.55);
 }
 .card:hover{box-shadow:inset 0 0 30px rgba(70,120,255,.3),0 0 40px rgba(45,95,255,.35),0 22px 60px rgba(0,0,0,.6)}
+.card::after{content:"";position:absolute;inset:0;border-radius:inherit;border:1.5px solid rgba(150,180,255,.5);filter:blur(2.5px);pointer-events:none;transition:border-color .3s ease}
+.card:hover::after{border-color:rgba(190,210,255,.8)}
 .card .star{background:radial-gradient(circle at 35% 30%,#d6e4ff,#3a6bff 45%,#0a1660);box-shadow:inset 0 1px 1px rgba(255,255,255,.6),0 8px 22px rgba(40,90,255,.45)}
-.logo-card{--rim-w:1px;border-color:transparent;background:rgba(6,9,22,.6)}
-.logo-card:hover{border-color:transparent;box-shadow:0 0 22px rgba(45,95,255,.3)}
 .band{
   --rim-w:3px;border-color:transparent;
   background:
@@ -1695,51 +1685,6 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
           <h3>Entrega e suporte</h3>
           <p>Publicação, treinamento, código-fonte e 90 dias de suporte inclusos.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <hr class="rule">
-
-  <section class="sec" data-reveal>
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="eyebrow">Ferramentas</p>
-        <h2>Com o que trabalhamos</h2>
-        <p>A escolha da tecnologia segue o problema, nunca a moda. Estas são as bases que dominamos e conseguimos manter no longo prazo.</p>
-      </div>
-      <div class="chips-static">
-        <span class="tag">JavaScript / TypeScript</span>
-        <span class="tag">React</span>
-        <span class="tag">Node.js</span>
-        <span class="tag">Python</span>
-        <span class="tag">PHP / Laravel</span>
-        <span class="tag">Flutter</span>
-        <span class="tag">PostgreSQL</span>
-        <span class="tag">MySQL</span>
-        <span class="tag">API REST</span>
-        <span class="tag">Docker</span>
-        <span class="tag">Linux</span>
-        <span class="tag">AWS</span>
-        <span class="tag">API do WhatsApp</span>
-        <span class="tag">Pix e gateways de pagamento</span>
-        <span class="tag">Integração com IA</span>
-      </div>
-    </div>
-  </section>
-
-  <hr class="rule">
-
-  <section class="sec" id="clientes" data-reveal>
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="eyebrow">Clientes</p>
-        <h2>Quem já confiou no nosso trabalho</h2>
-      </div>
-      <div class="logo-grid">
-        <div class="logo-card"><img src="assets/kiroshi.png" alt="Kiroshi Opticals"></div>
-        <div class="logo-card"><img src="assets/zippy.png" alt="Zippy+"></div>
-        <div class="logo-card"><img src="assets/autoposto-arena.png" alt="Autoposto Arena"></div>
       </div>
     </div>
   </section>
