@@ -586,9 +586,382 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 .rede-visual canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 @media (max-width:820px){.rede-visual{aspect-ratio:4/3;margin-bottom:20px}}
 
+/* abertura: logo em partículas sobre o site desfocado */
+.intro-logo{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transition:opacity .9s ease;cursor:pointer}
+.intro-logo canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.intro-logo.sair{opacity:0;pointer-events:none}
+.intro-pular{position:absolute;right:22px;bottom:22px;font-family:var(--headline);font-weight:600;font-size:14px;color:var(--ink-2);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:9px 18px;cursor:pointer}
+.intro-pular:hover{color:var(--ink);background:rgba(255,255,255,.12)}
+
 </style>
 </head>
 <body>
+<div id="introLogo" class="intro-logo" aria-hidden="true"><canvas></canvas><button type="button" class="intro-pular">Pular</button></div>
+<script>
+(function(){
+  "use strict";
+  var el = document.getElementById("introLogo");
+  var jaViu = false;
+  try { jaViu = sessionStorage.getItem("sbmh.intro") === "1"; } catch(e){}
+  var reduz = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (jaViu || reduz){ el.remove(); return; }
+  try { sessionStorage.setItem("sbmh.intro", "1"); } catch(e){}
+
+  /**
+   * Particle Ribbon — anel de partículas em forma de sela (3D) cujas partículas
+   * saem do anel e montam a logo SBMH no centro, depois voltam.
+   * Sem dependências. Uso: ParticleRibbon(document.querySelector('canvas'), { ...opções })
+   * Retorna { destroy() } para limpar (útil em React/Next: chamar no cleanup do useEffect).
+   */
+  function ParticleRibbon(canvas, opts) {
+    const o = Object.assign({
+      particles: 5200,         // total de partículas — TODAS montam a logo (nenhuma sobra no anel)
+      trails: 0,               // linhas roxas desligadas (coloque 5 para voltar)
+      trailColor: [84, 28, 140],  // roxo escuro (troque aqui a cor da linha)
+      trailWidth: 2.2,         // espessura da linha em px
+      particleColor: [255, 255, 255],
+      background: '#000',
+      speed: 1,                // multiplicador geral de velocidade
+      fill: 0.86,              // quanto da largura o anel ocupa
+      // ---- construção no centro ----
+      build: true,             // liga/desliga a animação de "construção"
+      shapes: ['logo'],        // formas em sequência: 'logo', 'cube', 'sphere', 'pyramid' ou 'text:SEU TEXTO'
+      logoSrc: '',      // imagem da logo (PNG com fundo transparente). Pode trocar por '/img/logo.png'
+      buildSize: 0.34,         // tamanho da forma em relação ao anel (anel = 1)
+      hold: 6                  // segundos que a forma fica montada
+    }, opts || {});
+  
+    const ctx = canvas.getContext('2d');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let W = 0, H = 0, DPR = 1, scale = 1, raf = 0, running = true, visible = true;
+    const TAU = Math.PI * 2;
+  
+    // ---- Geometria: anel em "sela" (tipo Pringles) ----
+    const R = 1, A = 0.36;                       // raio e amplitude da ondulação
+    const center = (t, r = R, a = A, ph = 0) => [r * Math.cos(t), a * Math.cos(2 * t + ph), r * Math.sin(t)];
+    const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v); };
+  
+    // ---- Partículas ----
+    let P;
+    function buildParticles() {
+      // número fixo (não reduz no celular): menos partículas deixaria a logo falhada
+      const n = o.particles;
+      P = new Float32Array(n * 6); // t, radial, vertical, velocidade, brilho, fase
+      for (let i = 0; i < n; i++) {
+        const k = i * 6;
+        P[k]     = Math.random() * TAU;
+        P[k + 1] = gauss() * 0.12;                 // espessura radial da faixa
+        P[k + 2] = gauss() * 0.075;                 // espessura vertical
+        P[k + 3] = (0.012 + Math.random() * 0.02) * (Math.random() < 0.5 ? 1 : 0.6);
+        P[k + 4] = 0.35 + Math.pow(Math.random(), 1.6) * 0.65;
+        P[k + 5] = Math.random() * TAU;
+      }
+    }
+  
+    // ---- Construção: formas-alvo ----
+    // Cada gerador devolve n pontos [x,y,z] distribuídos na superfície/arestas da forma.
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    function onSegment(a, b) { const t = Math.random(); return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+    function onTriangle(a, b, c) { let u = Math.random(), v = Math.random(); if (u + v > 1) { u = 1 - u; v = 1 - v; }
+      return [a[0] + (b[0] - a[0]) * u + (c[0] - a[0]) * v, a[1] + (b[1] - a[1]) * u + (c[1] - a[1]) * v, a[2] + (b[2] - a[2]) * u + (c[2] - a[2]) * v]; }
+    // arestas bem marcadas (60%) + faces preenchidas (40%) = aparência de estrutura
+    function fromMesh(n, edges, tris) { const out = [];
+      for (let i = 0; i < n; i++) out.push(Math.random() < 0.6 ? onSegment(...edges[(Math.random() * edges.length) | 0]) : onTriangle(...tris[(Math.random() * tris.length) | 0]));
+      return out; }
+    const SHAPES = {
+      cube(n, S) { const s = S * 0.85, v = [];
+        for (let i = 0; i < 8; i++) v.push([(i & 1 ? s : -s), (i & 2 ? s : -s), (i & 4 ? s : -s)]);
+        const E = [[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]].map(([a, b]) => [v[a], v[b]]);
+        const F = [[0,1,3,2],[4,5,7,6],[0,1,5,4],[2,3,7,6],[0,2,6,4],[1,3,7,5]];
+        const T2 = []; F.forEach(([a, b, c, d]) => { T2.push([v[a], v[b], v[c]], [v[a], v[c], v[d]]); });
+        return fromMesh(n, E, T2); },
+      pyramid(n, S) { const s = S * 1.05, b = -S * 0.8, ap = [0, S * 1.05, 0];
+        const v = [[-s, b, -s], [s, b, -s], [s, b, s], [-s, b, s]];
+        const E = [[v[0], v[1]], [v[1], v[2]], [v[2], v[3]], [v[3], v[0]], [v[0], ap], [v[1], ap], [v[2], ap], [v[3], ap]];
+        const T2 = [[v[0], v[1], ap], [v[1], v[2], ap], [v[2], v[3], ap], [v[3], v[0], ap], [v[0], v[1], v[2]], [v[0], v[2], v[3]]];
+        return fromMesh(n, E, T2); },
+      sphere(n, S) { const r = S * 1.1, out = [], g = Math.PI * (3 - Math.sqrt(5));
+        for (let i = 0; i < n; i++) { const y = 1 - (i / (n - 1)) * 2, rr = Math.sqrt(1 - y * y), th = g * i;
+          out.push([Math.cos(th) * rr * r, y * r, Math.sin(th) * rr * r]); }
+        return out; },
+      // Logo: 55% das partículas no contorno (deixa a forma nítida) + 45% no preenchimento
+      logo(n, S) { const L = logoData, k = (S * 3.1) / L.h, out = [];
+        for (let i = 0; i < n; i++) {
+          const src = Math.random() < 0.55 ? L.edge : L.fill;
+          const q = src[(Math.random() * src.length) | 0];
+          out.push([(q[0] + Math.random() - 0.5 - L.w / 2) * k, -(q[1] + Math.random() - 0.5 - L.h / 2) * k, rnd(-0.01, 0.01)]);
+        }
+        return out; },
+      text(n, S, label) { const c = document.createElement('canvas'), w = 800, h = 220; c.width = w; c.height = h;
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+        let fs = 180; g.font = `800 ${fs}px system-ui, sans-serif`;
+        while (g.measureText(label).width > w * 0.92 && fs > 20) { fs -= 6; g.font = `800 ${fs}px system-ui, sans-serif`; }
+        g.fillText(label, w / 2, h / 2);
+        const d = g.getImageData(0, 0, w, h).data, px = [];
+        for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) if (d[(y * w + x) * 4 + 3] > 128) px.push([x, y]);
+        const k = (S * 4.2) / w, out = [];
+        for (let i = 0; i < n; i++) { const q = px[(Math.random() * px.length) | 0] || [w / 2, h / 2];
+          out.push([(q[0] - w / 2) * k, -(q[1] - h / 2) * k, rnd(-0.025, 0.025)]); }
+        return out; }
+    };
+  
+    // Linha do tempo de cada forma (segundos)
+    const GATHER = 5, HOLD = o.hold, RELEASE = 3, REST = 2.5, CYCLE = GATHER + HOLD + RELEASE + REST, MOVE = 1.6;
+    let NB = 0, TG, DL, DR, shapeIdx = -1, cycleStart = 0, isText = false;
+    function buildTargets() {
+      const spec = o.shapes[shapeIdx % o.shapes.length];
+      isText = spec.startsWith('text:') || spec === 'logo';   // formas "planas": ficam de frente pra câmera
+      if (spec === 'logo' && !logoData) { TG = null; return; } // logo ainda carregando
+      const pts = spec.startsWith('text:') ? SHAPES.text(NB, o.buildSize, spec.slice(5)) : (SHAPES[spec] || SHAPES.cube)(NB, o.buildSize);
+      // ordena de baixo para cima → a forma "sobe" como uma obra (texto: esquerda → direita)
+      pts.sort((a, b) => spec.startsWith('text:') ? a[0] - b[0] : a[1] - b[1]);
+      TG = new Float32Array(NB * 3); DL = new Float32Array(NB); DR = new Float32Array(NB);
+      for (let i = 0; i < NB; i++) {
+        TG[i * 3] = pts[i][0]; TG[i * 3 + 1] = pts[i][1]; TG[i * 3 + 2] = pts[i][2];
+        DL[i] = (i / NB) * (GATHER - MOVE) * 0.9 + Math.random() * 0.25;     // atraso de chegada
+        DR[i] = Math.random() * (RELEASE - MOVE);                           // atraso de saída
+      }
+    }
+    const ease = x => x <= 0 ? 0 : x >= 1 ? 1 : (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  
+    // ---- Carrega a logo e separa pixels de contorno e de preenchimento ----
+    let logoData = null;
+    if (o.shapes.includes('logo')) {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas'), w = img.naturalWidth, h = img.naturalHeight; c.width = w; c.height = h;
+        const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+        const d = g.getImageData(0, 0, w, h).data, on = (x, y) => x >= 0 && y >= 0 && x < w && y < h && d[(y * w + x) * 4 + 3] > 128;
+        const edge = [], fill = [];
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+          if (!on(x, y)) continue;
+          (on(x - 1, y) && on(x + 1, y) && on(x, y - 1) && on(x, y + 1) ? fill : edge).push([x, y]);
+        }
+        logoData = { w, h, edge, fill };
+        if (NB) { cycleStart = time; buildTargets(); }
+      };
+      img.src = o.logoSrc;
+    }
+  
+    // ---- Rastros (cometas) ----
+    const TRAIL_LEN = 720;
+    function newTrail(stagger) {
+      const cross = Math.random() < 0.45;          // alguns cruzam o anel em outra inclinação
+      return {
+        t: Math.random() * TAU,
+        v: (0.16 + Math.random() * 0.12) * (Math.random() < 0.5 ? 1 : -1),
+        r: cross ? 0.85 + Math.random() * 0.2 : 0.92 + Math.random() * 0.14,
+        a: cross ? A * (0.6 + Math.random() * 0.8) * (Math.random() < 0.5 ? 1 : -1) : A * (0.85 + Math.random() * 0.3),
+        ph: cross ? Math.random() * TAU : 0,
+        dy: (Math.random() - 0.5) * 0.12,
+        life: stagger ? -Math.random() * 4 : 0,
+        maxLife: 14 + Math.random() * 8,
+        ring: Math.random() < 0.35,
+        hist: []
+      };
+    }
+    let T = [];
+    function buildTrails() { T = []; for (let i = 0; i < o.trails; i++) T.push(newTrail(true)); }
+  
+    // ---- Câmera ----
+    let yaw = 0, pitch = 0;
+    function project(x, y, z, out) {
+      // rotação Y (yaw) depois X (pitch)
+      const cy = Math.cos(yaw), sy = Math.sin(yaw);
+      let x1 = x * cy - z * sy, z1 = x * sy + z * cy;
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      let y1 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+      const d = 7, f = d / (d + z2);
+      out[0] = W / 2 + x1 * f * scale;
+      out[1] = H / 2 - y1 * f * scale;
+      out[2] = z2;
+      return out;
+    }
+  
+    function resize() {
+      const r = canvas.getBoundingClientRect();
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = Math.max(1, r.width); H = Math.max(1, r.height);
+      canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      scale = Math.min((W * o.fill) / 2.3, (H * 0.82) / 1.45);
+      buildParticles();
+      NB = o.build ? P.length / 6 : 0;   // todas as partículas participam da montagem
+      if (NB) { if (shapeIdx < 0) shapeIdx = 0; buildTargets(); }
+    }
+  
+    // buckets de alpha para desenhar milhares de pontos com poucas trocas de fillStyle
+    const BUCKETS = 5;
+    const buckets = Array.from({ length: BUCKETS }, () => []);
+    const tmp = [0, 0, 0];
+    const [pr, pg, pb] = o.particleColor;
+    const [tr, tg, tb] = o.trailColor;
+  
+    let last = performance.now(), time = 0;
+    function frame(now) {
+      const dt = Math.min(0.05, (now - last) / 1000) * o.speed; last = now;
+      time += dt;
+  
+      // leve "respiração" da câmera, como no vídeo
+      yaw = 0.35 + Math.sin(time * 0.09) * 0.18;
+      pitch = 0.2 + Math.sin(time * 0.07 + 1) * 0.06;
+  
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.clearRect(0, 0, W, H);
+  
+      // ---- ciclo da construção ----
+      let cyc = time - cycleStart;
+      if (NB && cyc >= CYCLE) { cycleStart = time; cyc = 0; shapeIdx++; buildTargets(); }
+      const spinY = time * 0.32, csY = Math.cos(spinY), snY = Math.sin(spinY);
+      const tilt = isText ? 0 : 0.38, csX = Math.cos(tilt), snX = Math.sin(tilt);
+  
+      // ---- partículas ----
+      for (let b = 0; b < BUCKETS; b++) buckets[b].length = 0;
+      const n = P.length / 6;
+      for (let i = 0; i < n; i++) {
+        const k = i * 6;
+        P[k] += P[k + 3] * dt;
+        const t = P[k], ct = Math.cos(t), st = Math.sin(t);
+        const wob = Math.sin(time * 0.6 + P[k + 5]) * 0.006;
+        const rr = R + P[k + 1] + wob;
+        const x = rr * ct, z = rr * st;
+        let y = A * Math.cos(2 * t) + P[k + 2];
+        let e = 0;
+        if (i < NB && TG) {
+          // progresso desta partícula: vai ao alvo, segura, volta ao anel
+          if (cyc < GATHER + HOLD) e = ease((cyc - DL[i]) / MOVE);
+          else e = 1 - ease((cyc - GATHER - HOLD - DR[i]) / MOVE);
+          if (e > 0) {
+            // alvo girando devagar (texto só gira de leve para continuar legível)
+            let tx = TG[i * 3], ty = TG[i * 3 + 1], tz = TG[i * 3 + 2];
+            if (isText) { const sw = Math.sin(time * 0.4) * 0.12, c2 = Math.cos(sw), s2 = Math.sin(sw); const nx = tx * c2 - tz * s2; tz = tx * s2 + tz * c2; tx = nx; }
+            else { let y2 = ty * csX - tz * snX, z2 = ty * snX + tz * csX; const nx = tx * csY - z2 * snY; z2 = tx * snY + z2 * csY; tx = nx; ty = y2; tz = z2; }
+            // compensa o yaw da câmera para o texto ficar sempre de frente
+            if (isText) {
+              const cp = Math.cos(pitch), sp = Math.sin(pitch); const ny = ty * cp + tz * sp; tz = -ty * sp + tz * cp; ty = ny;   // desfaz a inclinação
+              const cy = Math.cos(-yaw), sy = Math.sin(-yaw); const nx = tx * cy - tz * sy; tz = tx * sy + tz * cy; tx = nx;      // desfaz o giro
+            }
+            const arc = Math.sin(Math.PI * e) * 0.18;   // trajetória em arco
+            const xx = x + (tx - x) * e, zz = z + (tz - z) * e;
+            y = y + (ty - y) * e + arc;
+            project(xx, y, zz, tmp);
+          } else project(x, y, z, tmp);
+        } else project(x, y, z, tmp);
+        const twinkle = 0.75 + 0.25 * Math.sin(time * 2.2 + P[k + 5] * 7);
+        const depth = 0.7 + 0.3 * (1 - (tmp[2] + 1.3) / 2.6);   // mais perto = mais forte
+        let a = P[k + 4] * twinkle * depth;
+        if (e > 0) a = a + (1 - a) * e * 0.8;                     // peças montadas brilham mais
+        const bi = Math.max(0, Math.min(BUCKETS - 1, (a * BUCKETS) | 0));
+        buckets[bi].push(tmp[0], tmp[1], e > 0.5 ? 1.7 : (P[k + 4] > 0.8 ? 1.9 : 1.25));
+      }
+      ctx.globalCompositeOperation = 'lighter';
+      for (let b = 0; b < BUCKETS; b++) {
+        const arr = buckets[b]; if (!arr.length) continue;
+        ctx.fillStyle = `rgba(${pr},${pg},${pb},${((b + 1) / BUCKETS) * 0.95})`;
+        for (let j = 0; j < arr.length; j += 3) {
+          const s = arr[j + 2];
+          ctx.fillRect(arr[j] - s / 2, arr[j + 1] - s / 2, s, s);
+        }
+      }
+  
+      // ---- rastros (linhas violeta) ----
+      ctx.lineCap = 'round';
+      for (let i = 0; i < T.length; i++) {
+        const c = T[i];
+        c.life += dt;
+        if (c.life < 0) continue;
+        c.t += c.v * dt;
+        const p = center(c.t, c.r, c.a, c.ph);
+        p[1] += c.dy;
+        c.hist.push(p);
+        if (c.hist.length > TRAIL_LEN) c.hist.shift();
+  
+        // fade de entrada/saída
+        const fade = Math.min(1, c.life / 2, Math.max(0, (c.maxLife - c.life) / 2.5));
+        if (c.life > c.maxLife + 3) { T[i] = newTrail(false); continue; }
+  
+        const h = c.hist, m = h.length;
+        if (m < 2) continue;
+        const pts = new Array(m);
+        for (let j = 0; j < m; j++) pts[j] = project(h[j][0], h[j][1], h[j][2], [0, 0, 0]);
+  
+        // Linha contínua e lisa, espessura constante (igual ao vídeo).
+        // Só a cauda (primeiros 35% do histórico) esmaece, ponto a ponto.
+        ctx.globalCompositeOperation = 'source-over';   // cor fica fiel (sem clarear sobre as partículas)
+        ctx.lineWidth = o.trailWidth;
+        ctx.lineJoin = 'round';
+        const tailEnd = Math.floor(m * 0.35);
+        ctx.lineCap = 'butt';
+        for (let j = 1; j <= tailEnd; j++) {
+          const al = fade * Math.pow(j / tailEnd, 1.6);
+          if (al < 0.01) continue;
+          ctx.strokeStyle = `rgba(${tr},${tg},${tb},${al})`;
+          ctx.beginPath();
+          ctx.moveTo(pts[j - 1][0], pts[j - 1][1]);
+          ctx.lineTo(pts[j][0], pts[j][1]);
+          ctx.stroke();
+        }
+        if (m - tailEnd > 1) {
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = `rgba(${tr},${tg},${tb},${fade})`;
+          ctx.beginPath();
+          ctx.moveTo(pts[tailEnd][0], pts[tailEnd][1]);
+          for (let k = tailEnd + 1; k < m; k++) ctx.lineTo(pts[k][0], pts[k][1]);
+          ctx.stroke();
+        }
+        // marcador circular na ponta (aparece em alguns rastros)
+        if (c.ring && fade > 0.3) {
+          const hd = pts[m - 1];
+          const pulse = 0.5 + 0.5 * Math.sin(time * 3 + i);
+          ctx.strokeStyle = `rgba(${tr},${tg},${tb},${fade * (0.5 + pulse * 0.5)})`;
+          ctx.lineWidth = 1.4;
+          ctx.beginPath(); ctx.arc(hd[0], hd[1], 5 + pulse * 2, 0, TAU); ctx.stroke();
+          ctx.fillStyle = `rgba(${tr},${tg},${tb},${fade})`;
+          ctx.beginPath(); ctx.arc(hd[0], hd[1], 1.8, 0, TAU); ctx.fill();
+        }
+      }
+  
+      if (running && visible && !reduce) raf = requestAnimationFrame(frame);
+    }
+  
+    function start() {
+      cancelAnimationFrame(raf);
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+  
+    // Pausa quando o canvas sai da tela ou a aba fica oculta (economiza bateria/CPU)
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && running && !reduce) start(); });
+    io.observe(canvas);
+    const onVis = () => { running = !document.hidden; if (running && visible && !reduce) start(); };
+    document.addEventListener('visibilitychange', onVis);
+    const ro = new ResizeObserver(() => { resize(); if (reduce) { time = 8; frame(performance.now()); } });
+    ro.observe(canvas);
+  
+    resize(); buildTrails();
+    if (reduce) {
+      // Acessibilidade: com "reduzir movimento" ativo, mostra um quadro estático
+      for (const c of T) { c.life = 2; for (let s = 0; s < TRAIL_LEN; s++) { c.t += c.v / 60; const p = center(c.t, c.r, c.a, c.ph); p[1] += c.dy; c.hist.push(p); } }
+      frame(performance.now());
+    } else start();
+  
+    return {
+      destroy() { cancelAnimationFrame(raf); io.disconnect(); ro.disconnect(); document.removeEventListener('visibilitychange', onVis); }
+    };
+  }
+
+  var anim = ParticleRibbon(el.querySelector("canvas"), { logoSrc: "assets/logo-particulas.png" });
+  var fechado = false;
+  function fechar(){
+    if (fechado) return;
+    fechado = true;
+    el.classList.add("sair");
+    setTimeout(function(){ anim.destroy(); el.remove(); }, 900);
+  }
+  setTimeout(fechar, 10000);
+  el.addEventListener("click", fechar);
+})();
+</script>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="star" viewBox="0 0 100 100"><path d="M50 1 L67 33 L99 50 L67 67 L50 99 L33 67 L1 50 L33 33 Z" fill="currentColor"/></symbol>
   <symbol id="arrow" viewBox="0 0 24 24"><path d="M12 20V5M12 5l-7 7M12 5l7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
