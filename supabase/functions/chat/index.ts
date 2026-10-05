@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { historico, protocolo, nome, marcarEnviado, mensagemAdmin, buscarMensagens } = await req.json();
+    const { historico, protocolo, nome, marcarEnviado, mensagemAdmin, buscarMensagens, minhaConversa } = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -146,6 +146,17 @@ Deno.serve(async (req) => {
 
     const usuario = usuarioDoPedido(req);
     if (!usuario) return json({ erro: "Entre na sua conta para conversar." }, 401);
+
+    // conversa mais recente da conta, para o cliente retomar em qualquer aparelho
+    if (minhaConversa) {
+      if (!supabaseUrl || !serviceKey) return json({ erro: "Configuracao do servidor ausente." }, 500);
+      const linhas = await fetch(
+        `${supabaseUrl}/rest/v1/conversas?user_id=eq.${usuario.id}&select=protocolo,mensagens&order=atualizado_em.desc&limit=1`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+      ).then((r) => r.json());
+      const ultima = Array.isArray(linhas) && linhas[0] ? linhas[0] : null;
+      return json({ protocolo: ultima ? ultima.protocolo : null, mensagens: ultima && Array.isArray(ultima.mensagens) ? ultima.mensagens : [] });
+    }
     if (typeof protocolo !== "string" || !protocolo || !supabaseUrl || !serviceKey) {
       return json({ erro: "Requisição inválida." }, 400);
     }

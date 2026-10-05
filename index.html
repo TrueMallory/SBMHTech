@@ -2189,11 +2189,14 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
   /* retoma a conversa salva neste navegador, se o visitante já tinha começado uma antes */
   function retomarConversa(){
-    chamarChat(JSON.stringify({ protocolo: protocolo, buscarMensagens: true }))
+    if (!logado) return;
+    chamarChat(JSON.stringify({ minhaConversa: true }))
       .then(function(r){ return r.json(); })
       .then(function(dados){
         var doServidor = Array.isArray(dados.mensagens) ? dados.mensagens : [];
-        if (doServidor.length === 0 || iniciado) return;
+        if (!dados.protocolo || doServidor.length === 0 || iniciado) return;
+        protocolo = dados.protocolo;
+        try { localStorage.setItem(CHAVE_PROTOCOLO, protocolo); } catch(e){}
         iniciado = true;
         intro.remove();
         stage.style.justifyContent = "flex-start";
