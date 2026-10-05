@@ -454,7 +454,7 @@ body::before{
 
 /* aro cromado iridescente */
 .nav-in,.ai-wrap,.card,.band,.composer,.sug,.logo-card,.btn-ghost{position:relative}
-.nav-in::after,.ai-wrap::after,.card::after,.band::after,
+.nav-in::after,.ai-wrap::after,.band::after,
 .composer::after,.sug::after,.logo-card::after,.btn-ghost::after{
   content:"";position:absolute;inset:0;border-radius:inherit;padding:var(--rim-w,1.5px);
   background:var(--rim);
@@ -524,13 +524,11 @@ body::before{
 .sobre-video,.reels-frame{-webkit-mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 12%,#000 88%,transparent),linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);mask-composite:intersect}
 .reels-frame{background:transparent}
 .card{
-  --rim-w:2px;border-color:transparent;
+  border:0;
   background:radial-gradient(90% 55% at 50% 0%,rgba(40,90,255,.2),transparent 70%),linear-gradient(180deg,rgba(8,12,30,.86),rgba(1,2,8,.92));
-  box-shadow:var(--inner),0 18px 50px rgba(0,0,0,.55);
+  box-shadow:inset 0 0 24px rgba(70,120,255,.2),0 18px 50px rgba(0,0,0,.55);
 }
-.card::after{opacity:.75;transition:opacity .3s ease}
-.card:hover{border-color:transparent;box-shadow:inset 0 1px 1px rgba(255,255,255,.45),inset 0 0 30px rgba(70,120,255,.3),0 0 40px rgba(45,95,255,.35),0 22px 60px rgba(0,0,0,.6)}
-.card:hover::after{opacity:1}
+.card:hover{box-shadow:inset 0 0 30px rgba(70,120,255,.3),0 0 40px rgba(45,95,255,.35),0 22px 60px rgba(0,0,0,.6)}
 .card .star{background:radial-gradient(circle at 35% 30%,#d6e4ff,#3a6bff 45%,#0a1660);box-shadow:inset 0 1px 1px rgba(255,255,255,.6),0 8px 22px rgba(40,90,255,.45)}
 .logo-card{--rim-w:1px;border-color:transparent;background:rgba(6,9,22,.6)}
 .logo-card:hover{border-color:transparent;box-shadow:0 0 22px rgba(45,95,255,.3)}
@@ -1636,32 +1634,32 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
         <article class="card">
           <svg class="star" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
           <h3>Do Front ao Back</h3>
-          <p>Painéis administrativos, portais de cliente, controle de estoque, ordens de serviço, gestão financeira. Feito em cima do processo que a sua empresa já usa, não do contrário.</p>
+          <p>Painéis, portais de cliente, estoque e financeiro, feitos em cima do processo da sua empresa.</p>
         </article>
         <article class="card">
           <svg class="star" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
           <h3>Sites e páginas de captação</h3>
-          <p>Institucional, catálogo, landing page de campanha. Rápido, indexável no Google e preparado para converter visita em contato — não só bonito.</p>
+          <p>Institucional, catálogo e landing page rápidos, achados no Google e prontos pra converter.</p>
         </article>
         <article class="card">
           <svg class="star" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
           <h3>Aplicativos mobile</h3>
-          <p>Android e iOS a partir de uma única base de código, com publicação nas lojas incluída. App de campo, delivery, clube de assinatura ou uso interno da equipe.</p>
+          <p>Android e iOS com uma única base de código, com publicação nas lojas incluída.</p>
         </article>
         <article class="card">
           <svg class="star" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
           <h3>Automação e integrações</h3>
-          <p>Robôs que eliminam trabalho repetitivo, integração com WhatsApp, meios de pagamento, emissores de nota, ERPs e planilhas. Inclui agentes de IA quando faz sentido.</p>
+          <p>Integração com WhatsApp, pagamentos, notas fiscais e ERPs, com IA quando faz sentido.</p>
         </article>
         <article class="card">
           <svg class="star" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
           <h3>Manutenção e resgate de sistemas</h3>
-          <p>Assumimos software que já existe e ficou parado: correção de falhas, atualização de dependências, migração de servidor e novas funcionalidades sem reescrever tudo.</p>
+          <p>Assumimos sistemas parados: corrigimos, atualizamos e evoluímos sem reescrever tudo.</p>
         </article>
         <article class="card">
           <svg class="star" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
           <h3>Consultoria técnica</h3>
-          <p>Você já tem time ou fornecedor e quer uma segunda opinião: revisão de arquitetura, análise de orçamento recebido e definição do que construir primeiro.</p>
+          <p>Uma segunda opinião sobre arquitetura, orçamentos recebidos e o que construir primeiro.</p>
         </article>
       </div>
     </div>
