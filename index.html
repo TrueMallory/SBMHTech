@@ -549,6 +549,9 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 .ai-bloqueio-ctas .btn{font-family:var(--headline);font-weight:600;font-size:15px;letter-spacing:-.01em;text-transform:none;padding:13px 24px}
 
 /* esfera animada da Milla */
+.orb-dock{display:none;justify-content:center;margin:-18px 0 0}
+.orb-dock.on{display:flex;animation:rise .5s ease both}
+.orb-dock .milla-orb{display:block;width:84px;height:84px}
 .ai-intro .milla-orb{display:block;width:156px;height:156px;margin:-22px auto -4px}
 @media (max-width:560px){.ai-intro .milla-orb{width:108px;height:108px;margin:-12px auto 0}}
 
@@ -587,6 +590,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
   <!-- ================= TELA 1 — CHAT ================= -->
   <section class="ai" id="chat" aria-label="Atendimento SBMH Tech">
     <div class="ai-wrap">
+      <div class="orb-dock" id="orbDock" aria-hidden="true"></div>
 
       <div class="ai-stage" id="stage">
         <div class="ai-intro" id="intro">
@@ -638,14 +642,15 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
     var ctx = cv.getContext("2d");
     var reduz = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var S = 0, R = 0;
+    var S = 0, R = 0, Rbase = 0, energia = 0, alvo = 0;
   
     function medir(){
       S = cv.clientWidth || 150;
       cv.width = Math.round(S * dpr);
       cv.height = Math.round(S * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      R = S * 0.36;
+      Rbase = S * 0.36;
+      R = Rbase;
     }
   
     var K = 6, FIOS = 18, PASSOS = 28;
@@ -664,11 +669,12 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
   
     function quadro(t){
       var cx = S / 2, cy = S / 2;
+      R = Rbase * (1 + 0.1 * energia);
       ctx.clearRect(0, 0, S, S);
       ctx.globalCompositeOperation = "source-over";
   
-      var halo = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R * 1.38);
-      halo.addColorStop(0, "rgba(120,80,255,.16)");
+      var halo = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, Math.min(R * 1.38, S * 0.49));
+      halo.addColorStop(0, "rgba(120,80,255," + (0.16 + 0.45 * energia).toFixed(3) + ")");
       halo.addColorStop(1, "rgba(120,80,255,0)");
       ctx.fillStyle = halo;
       ctx.fillRect(0, 0, S, S);
@@ -683,9 +689,9 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
   
       for (var r = 0; r < 5; r++){
         var ang = t * 0.12 + r * 1.257;
-        var comp = R * (1.3 + 0.15 * Math.sin(t * 0.7 + r));
+        var comp = Math.min(R * (1.3 + 0.15 * Math.sin(t * 0.7 + r)), S * 0.49);
         var g = ctx.createLinearGradient(cx, cy, cx + Math.cos(ang) * comp, cy + Math.sin(ang) * comp);
-        g.addColorStop(0, "rgba(150,110,255,.16)");
+        g.addColorStop(0, "rgba(150,110,255," + (0.16 + 0.26 * energia).toFixed(3) + ")");
         g.addColorStop(1, "rgba(150,110,255,0)");
         ctx.fillStyle = g;
         ctx.beginPath();
@@ -712,7 +718,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
         var d = [Math.cos(te) * Math.cos(fi), Math.sin(te), Math.cos(te) * Math.sin(fi)];
         var e1 = norm(cruz(d, [0, 1, 0]));
         var e2 = cruz(d, e1);
-        var L = R * (0.78 + 0.16 * Math.sin(t * 0.6 + k * 2.1));
+        var L = R * (0.78 + 0.16 * Math.sin(t * 0.6 + k * 2.1)) * (1 + 0.12 * energia);
         var W = R * (0.34 + 0.1 * Math.sin(t * 0.5 + k));
         var torcao = 2.4 + Math.sin(t * 0.3 + k);
         var hue = CORES[k % CORES.length];
@@ -742,7 +748,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
           }
           var zm = somaZ / (PASSOS + 1) / R;
           var borda = 1 - Math.abs(v) * 0.55;
-          var alpha = (0.26 + 0.3 * (zm + 1)) * borda;
+          var alpha = Math.min(1, (0.26 + 0.3 * (zm + 1)) * borda * (1 + 1.1 * energia));
           ctx.lineWidth = S * 0.022;
           ctx.strokeStyle = "hsla(" + hue + ",95%,62%," + (alpha * 0.09).toFixed(3) + ")";
           ctx.stroke();
@@ -752,7 +758,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
         }
       }
   
-      var pulso = 0.85 + 0.15 * Math.sin(t * 2.1);
+      var pulso = (0.85 + 0.15 * Math.sin(t * 2.1)) * (1 + 0.75 * energia);
       var nucleo = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.32 * pulso);
       nucleo.addColorStop(0, "rgba(255,240,255,.95)");
       nucleo.addColorStop(0.12, "rgba(225,160,255,.7)");
@@ -778,15 +784,34 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
       }
     }
   
+    var dock = document.getElementById("orbDock");
+    var palco = document.getElementById("stage");
+    var visivel = true, rodando = false, ultimo = null, tempo = 0;
+
     medir();
-    if (reduz){ quadro(2); return; }
-  
-    var visivel = true, inicio = null, rodando = false;
+    if (reduz) quadro(2);
+
+    // a abertura some quando a conversa começa: a esfera sobe pro topo do chat e reage ao #typing
+    if (palco && dock && "MutationObserver" in window){
+      new MutationObserver(function(){
+        if (!cv.isConnected){
+          dock.appendChild(cv);
+          dock.classList.add("on");
+          medir();
+          if (reduz) quadro(2); else ligar();
+        }
+        alvo = document.getElementById("typing") ? 1 : 0;
+      }).observe(palco, { childList: true, subtree: true });
+    }
+    if (reduz) return;
+
     function loop(agora){
-      if (!cv.isConnected){ rodando = false; return; }
-      if (!visivel){ rodando = false; return; }
-      if (inicio === null) inicio = agora;
-      quadro((agora - inicio) / 1000);
+      if (!cv.isConnected || !visivel){ rodando = false; ultimo = null; return; }
+      var dt = ultimo === null ? 0 : Math.min((agora - ultimo) / 1000, 0.1);
+      ultimo = agora;
+      energia += (alvo - energia) * Math.min(1, dt * 4);
+      tempo += dt * (1 + 1.8 * energia);
+      quadro(tempo);
       requestAnimationFrame(loop);
     }
     function ligar(){ if (!rodando){ rodando = true; requestAnimationFrame(loop); } }
