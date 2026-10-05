@@ -548,6 +548,10 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 .sobre-stats b{font-weight:700}
 .ai-bloqueio-ctas .btn{font-family:var(--headline);font-weight:600;font-size:15px;letter-spacing:-.01em;text-transform:none;padding:13px 24px}
 
+/* esfera animada da Milla */
+.ai-intro .milla-orb{display:block;width:156px;height:156px;margin:-22px auto -4px}
+@media (max-width:560px){.ai-intro .milla-orb{width:108px;height:108px;margin:-12px auto 0}}
+
 </style>
 </head>
 <body>
@@ -586,7 +590,7 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
       <div class="ai-stage" id="stage">
         <div class="ai-intro" id="intro">
-          <svg class="istar" viewBox="0 0 100 100" aria-hidden="true"><use href="#star"/></svg>
+          <canvas class="milla-orb" id="millaOrb" aria-hidden="true"></canvas>
           <p class="eyebrow">Milla</p>
           <h1>Em que a <span class="chrome">Milla</span> pode ajudar?</h1>
           <p>Descreva seu projeto aqui. Sistemas, aplicativos, sites e automações sob medida — crie sua conta gratuita e converse com a gente, com resposta em até 24 horas.</p>
@@ -625,6 +629,177 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
     </div>
   </section>
+
+  <script>
+  (function(){
+    "use strict";
+    var cv = document.getElementById("millaOrb");
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext("2d");
+    var reduz = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var S = 0, R = 0;
+  
+    function medir(){
+      S = cv.clientWidth || 150;
+      cv.width = Math.round(S * dpr);
+      cv.height = Math.round(S * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      R = S * 0.36;
+    }
+  
+    var K = 6, FIOS = 18, PASSOS = 28;
+    var CORES = [268, 292, 248, 305, 258, 282];
+  
+    var poeira = [];
+    for (var i = 0; i < 170; i++){
+      var z = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, r = Math.sqrt(1 - z * z);
+      poeira.push([r * Math.cos(a), z, r * Math.sin(a), Math.random()]);
+    }
+  
+    function rotX(p, a){ var c = Math.cos(a), s = Math.sin(a); return [p[0], p[1] * c - p[2] * s, p[1] * s + p[2] * c]; }
+    function rotY(p, a){ var c = Math.cos(a), s = Math.sin(a); return [p[0] * c + p[2] * s, p[1], -p[0] * s + p[2] * c]; }
+    function norm(v){ var m = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / m, v[1] / m, v[2] / m]; }
+    function cruz(a, b){ return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+  
+    function quadro(t){
+      var cx = S / 2, cy = S / 2;
+      ctx.clearRect(0, 0, S, S);
+      ctx.globalCompositeOperation = "source-over";
+  
+      var halo = ctx.createRadialGradient(cx, cy, R * 0.85, cx, cy, R * 1.38);
+      halo.addColorStop(0, "rgba(120,80,255,.16)");
+      halo.addColorStop(1, "rgba(120,80,255,0)");
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, S, S);
+  
+      var fundo = ctx.createRadialGradient(cx, cy - R * 0.2, R * 0.1, cx, cy, R);
+      fundo.addColorStop(0, "rgba(50,25,120,.22)");
+      fundo.addColorStop(0.72, "rgba(14,7,40,.22)");
+      fundo.addColorStop(1, "rgba(90,50,200,.32)");
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = fundo; ctx.fill();
+  
+      ctx.globalCompositeOperation = "lighter";
+  
+      for (var r = 0; r < 5; r++){
+        var ang = t * 0.12 + r * 1.257;
+        var comp = R * (1.3 + 0.15 * Math.sin(t * 0.7 + r));
+        var g = ctx.createLinearGradient(cx, cy, cx + Math.cos(ang) * comp, cy + Math.sin(ang) * comp);
+        g.addColorStop(0, "rgba(150,110,255,.16)");
+        g.addColorStop(1, "rgba(150,110,255,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(ang - 0.045) * comp, cy + Math.sin(ang - 0.045) * comp);
+        ctx.lineTo(cx + Math.cos(ang + 0.045) * comp, cy + Math.sin(ang + 0.045) * comp);
+        ctx.closePath();
+        ctx.fill();
+      }
+  
+      var giro = t * 0.08;
+      for (var p = 0; p < poeira.length; p++){
+        var q = rotY(poeira[p], giro);
+        q = rotX(q, 0.35);
+        var brilho = 0.15 + 0.45 * (q[2] + 1) / 2;
+        ctx.fillStyle = "rgba(205,160,255," + (brilho * (0.4 + 0.6 * poeira[p][3])).toFixed(3) + ")";
+        ctx.fillRect(cx + q[0] * R * 0.98, cy - q[1] * R * 0.98, 0.9, 0.9);
+      }
+  
+      ctx.lineWidth = 0.8;
+      for (var k = 0; k < K; k++){
+        var fi = k * Math.PI * 2 / K + t * 0.22;
+        var te = 0.95 * Math.sin(t * 0.37 + k * 1.3);
+        var d = [Math.cos(te) * Math.cos(fi), Math.sin(te), Math.cos(te) * Math.sin(fi)];
+        var e1 = norm(cruz(d, [0, 1, 0]));
+        var e2 = cruz(d, e1);
+        var L = R * (0.78 + 0.16 * Math.sin(t * 0.6 + k * 2.1));
+        var W = R * (0.34 + 0.1 * Math.sin(t * 0.5 + k));
+        var torcao = 2.4 + Math.sin(t * 0.3 + k);
+        var hue = CORES[k % CORES.length];
+  
+        for (var f = 0; f < FIOS; f++){
+          var v = f / (FIOS - 1) * 2 - 1;
+          ctx.beginPath();
+          var somaZ = 0;
+          for (var s = 0; s <= PASSOS; s++){
+            var u = s / PASSOS;
+            var al = torcao * u + t * 0.9 + k;
+            var ca = Math.cos(al), sa = Math.sin(al);
+            var w = [e1[0] * ca + e2[0] * sa, e1[1] * ca + e2[1] * sa, e1[2] * ca + e2[2] * sa];
+            var n = [-e1[0] * sa + e2[0] * ca, -e1[1] * sa + e2[1] * ca, -e1[2] * sa + e2[2] * ca];
+            var env = Math.pow(Math.sin(Math.PI * u), 0.85) * W;
+            var onda = 0.35 * env * Math.sin(u * 9 - t * 2.2 + k + v * 1.4);
+            var P = [
+              d[0] * L * u + w[0] * env * v + n[0] * onda,
+              d[1] * L * u + w[1] * env * v + n[1] * onda,
+              d[2] * L * u + w[2] * env * v + n[2] * onda
+            ];
+            P = rotX(P, 0.35);
+            var persp = 1 / (1 - P[2] / (R * 5));
+            var x = cx + P[0] * persp, y = cy - P[1] * persp;
+            somaZ += P[2];
+            if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          var zm = somaZ / (PASSOS + 1) / R;
+          var borda = 1 - Math.abs(v) * 0.55;
+          var alpha = (0.26 + 0.3 * (zm + 1)) * borda;
+          ctx.lineWidth = S * 0.022;
+          ctx.strokeStyle = "hsla(" + hue + ",95%,62%," + (alpha * 0.09).toFixed(3) + ")";
+          ctx.stroke();
+          ctx.lineWidth = Math.max(0.6, S * 0.0019);
+          ctx.strokeStyle = "hsla(" + hue + ",95%,74%," + alpha.toFixed(3) + ")";
+          ctx.stroke();
+        }
+      }
+  
+      var pulso = 0.85 + 0.15 * Math.sin(t * 2.1);
+      var nucleo = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.32 * pulso);
+      nucleo.addColorStop(0, "rgba(255,240,255,.95)");
+      nucleo.addColorStop(0.12, "rgba(225,160,255,.7)");
+      nucleo.addColorStop(0.45, "rgba(140,90,255,.22)");
+      nucleo.addColorStop(1, "rgba(120,80,255,0)");
+      ctx.fillStyle = nucleo;
+      ctx.beginPath(); ctx.arc(cx, cy, R * 0.32 * pulso, 0, Math.PI * 2); ctx.fill();
+  
+      ctx.globalCompositeOperation = "source-over";
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "rgba(170,130,255,.45)";
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+      if (ctx.createConicGradient){
+        var aro = ctx.createConicGradient(t * 0.25, cx, cy);
+        aro.addColorStop(0, "rgba(255,170,240,.7)");
+        aro.addColorStop(0.18, "rgba(150,110,255,0)");
+        aro.addColorStop(0.55, "rgba(120,140,255,.45)");
+        aro.addColorStop(0.75, "rgba(150,110,255,0)");
+        aro.addColorStop(1, "rgba(255,170,240,.7)");
+        ctx.strokeStyle = aro;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+  
+    medir();
+    if (reduz){ quadro(2); return; }
+  
+    var visivel = true, inicio = null, rodando = false;
+    function loop(agora){
+      if (!cv.isConnected){ rodando = false; return; }
+      if (!visivel){ rodando = false; return; }
+      if (inicio === null) inicio = agora;
+      quadro((agora - inicio) / 1000);
+      requestAnimationFrame(loop);
+    }
+    function ligar(){ if (!rodando){ rodando = true; requestAnimationFrame(loop); } }
+    if ("IntersectionObserver" in window){
+      new IntersectionObserver(function(es){
+        visivel = es[0].isIntersecting;
+        if (visivel) ligar();
+      }).observe(cv);
+    }
+    window.addEventListener("resize", medir);
+    ligar();
+  })();
+  </script>
 
   <section class="sec" id="sobre" data-reveal>
     <div class="wrap sobre-grid">
