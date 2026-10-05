@@ -330,13 +330,9 @@ h2{
   .sobre-video{order:-1;max-width:420px;margin:0 auto;width:100%}
 }
 
-.reels-grid{display:grid;grid-template-columns:1fr auto;gap:56px;align-items:center}
+.reels-col .reels-frame{margin:0 auto 28px}
 .reels-frame{position:relative;width:min(320px,78vw);aspect-ratio:9/16;border-radius:30px;overflow:hidden;background:#000}
 .reels-frame video{width:100%;height:100%;object-fit:cover;display:block}
-@media (max-width:820px){
-  .reels-grid{grid-template-columns:1fr;gap:30px}
-  .reels-frame{margin:0 auto}
-}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;background:none;border:0}
 .card{
@@ -566,15 +562,16 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 .nav-links a.btn{font-family:var(--headline);font-weight:600;font-size:14px;letter-spacing:-.01em;text-transform:none}
 
 /* seção de segurança com o anel de partículas */
-.seg-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.seg-col .seg-visual{margin:0 auto 24px}
+.seg-col .seg-lista{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px 28px}
 .seg-lista{list-style:none;margin:0;padding:0;display:grid;gap:16px}
 .seg-lista li{display:grid;gap:3px;padding-left:20px;position:relative}
 .seg-lista li::before{content:"";position:absolute;left:0;top:9px;width:7px;height:7px;border-radius:50%;background:var(--violet2);box-shadow:0 0 10px rgba(143,176,255,.8)}
 .seg-lista b{font-family:var(--headline);font-weight:600;font-size:16px;color:var(--ink)}
 .seg-lista span{color:var(--mute);font-size:14.5px;line-height:1.6}
-.seg-visual{position:relative;width:100%;max-width:560px;aspect-ratio:5/4;justify-self:end;-webkit-mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent),linear-gradient(to bottom,transparent,#000 10%,#000 90%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent),linear-gradient(to bottom,transparent,#000 10%,#000 90%,transparent);mask-composite:intersect}
+.seg-visual{position:relative;width:100%;max-width:620px;aspect-ratio:5/4;-webkit-mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent),linear-gradient(to bottom,transparent,#000 10%,#000 90%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent),linear-gradient(to bottom,transparent,#000 10%,#000 90%,transparent);mask-composite:intersect}
 .seg-visual canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-@media (max-width:820px){.seg-grid{grid-template-columns:1fr;gap:24px}.seg-visual{justify-self:center;max-width:460px}}
+@media (max-width:820px){.seg-col .seg-visual{max-width:460px}}
 
 /* animação de construção na seção Nós Construímos */
 .construir-visual{position:relative;width:100%;aspect-ratio:16/7;margin:-6px 0 30px;-webkit-mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent),linear-gradient(to bottom,transparent,#000 10%,#000 90%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 10%,#000 90%,transparent),linear-gradient(to bottom,transparent,#000 10%,#000 90%,transparent);mask-composite:intersect}
@@ -982,19 +979,17 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
 
   <section class="sec" id="reels" data-reveal>
-    <div class="wrap reels-grid">
-      <div>
-        <div class="sec-head" style="margin-bottom:22px">
+    <div class="wrap reels-col">
+      <div class="sec-head" style="margin-bottom:22px">
           <p class="eyebrow">Em movimento</p>
           <h2>Crie Ideias</h2>
         </div>
-        <p class="sobre-texto">Cada projeto começa numa conversa e termina num produto rodando de verdade — feito sob medida, com entregas a cada duas semanas pra você acompanhar a evolução.</p>
-      </div>
       <div class="reels-frame">
         <video id="videoReels" muted loop playsinline preload="none" aria-label="Vídeo de apresentação da SBMH Tech">
           <source src="assets/reels.mp4" type="video/mp4">
         </video>
       </div>
+      <p class="sobre-texto">Cada projeto começa numa conversa e termina num produto rodando de verdade — feito sob medida, com entregas a cada duas semanas pra você acompanhar a evolução.</p>
     </div>
   </section>
 
@@ -1016,20 +1011,18 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
 
   <section class="sec" id="seguranca" data-reveal>
-    <div class="wrap seg-grid">
-      <div>
-        <div class="sec-head" style="margin-bottom:22px">
+    <div class="wrap seg-col">
+      <div class="sec-head" style="margin-bottom:22px">
           <p class="eyebrow">Segurança</p>
           <h2>Seus dados protegidos de ponta a ponta</h2>
         </div>
-        <p class="sobre-texto">Segurança não é um extra no fim do projeto: entra desde a primeira linha de código. Cada sistema que entregamos já nasce com as proteções certas pro tipo de dado que ele guarda.</p>
-        <ul class="seg-lista">
+      <div class="seg-visual"><canvas id="segurancaRibbon" aria-hidden="true"></canvas></div>
+      <p class="sobre-texto">Segurança não é um extra no fim do projeto: entra desde a primeira linha de código. Cada sistema que entregamos já nasce com as proteções certas pro tipo de dado que ele guarda.</p>
+      <ul class="seg-lista">
           <li><b>Acesso controlado</b><span>Login com confirmação de e-mail e regras no próprio banco de dados que só deixam cada pessoa ver o que é dela.</span></li>
           <li><b>Chaves fora do navegador</b><span>Senhas de serviços e chaves de API ficam só no servidor, nunca no código que roda no site ou no celular.</span></li>
           <li><b>Conexão criptografada</b><span>Todo o tráfego passa por HTTPS, do aparelho do usuário até o servidor.</span></li>
         </ul>
-      </div>
-      <div class="seg-visual"><canvas id="segurancaRibbon" aria-hidden="true"></canvas></div>
     </div>
   </section>
 
