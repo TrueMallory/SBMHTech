@@ -157,7 +157,7 @@ a{color:inherit}
     <span class="mark" role="img" aria-label="SBMH Technology"></span>
     <b>SBMH</b>
   </div>
-  <p class="lead" id="lead">Área do cliente — acompanhe propostas, entregas e chamados do seu projeto.</p>
+  <p class="lead" id="lead">Acompanhe sua conversa e seu projeto em um só lugar.</p>
 
   <div class="tabs" id="tabs" role="tablist">
     <button class="tab" type="button" id="tabEntrar" role="tab" aria-selected="true" aria-controls="formEntrar">Entrar</button>
@@ -591,11 +591,11 @@ a{color:inherit}
     chamar("/auth/v1/user", { password: s1 }, tokenRecuperacao)
       .then(function(r){
         if (!r.ok){ dizer(mensagemDe(r.dados)); return; }
-        dizer("Senha alterada. Agora é só entrar com ela.", true);
+        dizer("Senha alterada. Entre com a nova senha.", true);
         formNova.classList.remove("on"); formNova.hidden = true;
         tabs.style.display = "";
         trocar("entrar");
-        lead.textContent = "Área do cliente — acompanhe propostas, entregas e chamados do seu projeto.";
+        lead.textContent = "Acompanhe sua conversa e seu projeto em um só lugar.";
       })
       .catch(function(){ dizer("Não conseguimos falar com o servidor agora. Verifique sua conexão."); })
       .then(function(){ ocupado(botao, false, "Salvar nova senha"); });
