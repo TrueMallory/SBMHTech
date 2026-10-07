@@ -17,7 +17,7 @@ Como conversar:
 - Primeira resposta humana em até 24h. Atendimento remoto para todo o Brasil.
 - O código-fonte entregue é do cliente, sem amarras. 90 dias de suporte a falhas após a entrega inclusos.
 - Assim que já tiver o essencial (necessidade, prazo, investimento), sugira que o visitante clique em
-  "Enviar conversa ao administrador" no rodapé do chat, ou em "Falar agora" para ir direto ao WhatsApp.
+  "Falar com a equipe" no rodapé do chat, ou no botão verde do WhatsApp para falar direto com a gente.
 - Depois que o visitante já contou o essencial do projeto (ou quando fizer sentido no fluxo, sem forçar logo na
   primeira mensagem), incentive-o a criar uma conta em "Entrar" no menu do site — explique que assim ele acompanha
   proposta, andamento e chamados do projeto num só lugar, sem precisar ficar procurando e-mail antigo.
