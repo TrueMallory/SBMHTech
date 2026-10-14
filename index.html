@@ -2389,17 +2389,35 @@ html[data-visual="editorial"] .visual-toggle{border-radius:0;border:0;background
     travado = true;
     digitando();
     chamarChat(JSON.stringify({ historico: mensagensIA, protocolo: protocolo, nome: (sessaoDeChat() && sessaoDeChat().nome) || "" }))
-      .then(function(r){ return r.json(); })
-      .then(function(dados){
+      .then(function(r){
+        return r.json().catch(function(){ return {}; }).then(function(d){ return { status: r.status, dados: d || {} }; });
+      })
+      .then(function(res){
         paraDigitar();
         travado = false;
-        bolha("bot", dados.texto || "Não consegui responder agora. Pode tentar de novo?");
+        if (res.dados.texto){ bolha("bot", res.dados.texto); return; }
+        var aviso;
+        if (res.status === 401){
+          aviso = "Sua sessão expirou. Entre de novo na sua conta (menu Entrar) para continuar a conversa.";
+        } else if (res.status === 403){
+          novoProtocolo();
+          aviso = "Abrimos uma conversa nova para você. Pode enviar sua mensagem de novo?";
+        } else {
+          aviso = "Não consegui responder agora" + (res.dados.erro ? " (" + res.dados.erro + ")" : "") + ". Pode tentar de novo?";
+        }
+        bolha("bot", aviso);
+        mensagensIA.pop(); // o aviso não faz parte da conversa com a IA
       })
       .catch(function(){
         paraDigitar();
         travado = false;
         bolha("bot", "Estou indisponível no momento. Pode continuar escrevendo que o restante chega certinho ao administrador.");
       });
+  }
+
+  function novoProtocolo(){
+    protocolo = "SBMH-" + Math.random().toString(36).slice(2,6).toUpperCase() + Math.floor(Math.random()*90+10);
+    try { localStorage.setItem(CHAVE_PROTOCOLO, protocolo); } catch(e){}
   }
 
   function digitando(){
