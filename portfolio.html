@@ -2,6 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script>
+// aplica o visual escolhido antes de desenhar a página (evita piscar o visual errado)
+window.sbmhFontesEditorial = function(){
+  if (document.getElementById("fontesEditorial")) return;
+  var l = document.createElement("link");
+  l.id = "fontesEditorial"; l.rel = "stylesheet"; l.href = "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap";
+  document.head.appendChild(l);
+};
+try {
+  if (localStorage.getItem("sbmh.visual") === "editorial") {
+    document.documentElement.setAttribute("data-visual", "editorial");
+    window.sbmhFontesEditorial();
+  }
+} catch(e){}
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="SBMH Technology — portfólio de apps e sistemas que já desenvolvemos.">
 <meta name="theme-color" content="#000000">
@@ -562,6 +577,185 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
 
 .nav-links a.btn{font-family:var(--headline);font-weight:600;font-size:14px;letter-spacing:-.01em;text-transform:none}
 
+
+/* ================= VISUAL EDITORIAL (Countly) — ligado pelo botão "Visual editorial" ================= */
+html[data-visual="editorial"]{
+  --lime:#D8FB5B; --lime-deep:#B9DD3E; --lilac:#C9B3F2; --lilac-deep:#B49AEB; --lilac-soft:#DCCDF7;
+  --forest:#121F17; --forest-light:#1F3B2A; --sand:#E4DCCF; --rule:#DDD6CB;
+  --muted-soft:#6B655C; --muted-faint:#8A847A; --plum:#4A3D66; --plum-ink:#2A2433;
+  --paper:#F2EEE8; --ink:#121212; --ink-2:#2A2622; --mute:#4D4840; --line:#DDD6CB;
+  --violet:#121F17; --violet2:#121F17;
+  --headline:"Instrument Serif",Georgia,serif;
+  --display:"Hanken Grotesk",system-ui,sans-serif;
+  --body:"Hanken Grotesk",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+html[data-visual="editorial"] body{background:var(--paper);color:var(--ink)}
+html[data-visual="editorial"] body::before{display:none}
+
+/* sem vidro, sem sombra, cantos retos */
+html[data-visual="editorial"] :is(.nav-in,.ai-wrap,.card,.band,.composer,.sug,.btn,.send,.msg.me .body,.sobre-video,.reels-frame,.seg-visual,.construir-visual,.rede-visual,.nav-links,.menu-toggle,.voz,.tag,.projeto-galeria img,.projeto-imagem){border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html[data-visual="editorial"] :is(.nav-in,.ai-wrap,.card,.band,.composer,.sug,.btn-ghost)::after,
+html[data-visual="editorial"] .ai-wrap::before{display:none!important}
+
+/* tipografia */
+html[data-visual="editorial"] h1{font-family:var(--headline);font-weight:400;font-size:clamp(40px,6vw,66px);line-height:1;letter-spacing:-.03em;color:var(--ink)}
+html[data-visual="editorial"] h2{font-family:var(--headline);font-weight:400;font-size:clamp(34px,5vw,54px);line-height:1.02;letter-spacing:-.025em;color:var(--ink)}
+html[data-visual="editorial"] :is(h3,.card h3,.step h3,.projeto-head h3){font-family:var(--headline);font-weight:400;font-size:26px;letter-spacing:-.01em}
+html[data-visual="editorial"] .eyebrow{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.12em;color:var(--mute)}
+html[data-visual="editorial"] .sec-head .eyebrow::after{background:rgba(18,18,18,.35);height:1.5px}
+html[data-visual="editorial"] :is(.chrome,.cor-unica,.reels-destaque .chrome){
+  color:var(--ink)!important;font-style:italic;padding:0 6px 2px 4px;
+  background:linear-gradient(var(--lime),var(--lime)) no-repeat 0 0/100% 100%!important;
+  -webkit-background-clip:border-box!important;background-clip:border-box!important;
+  animation:edMarca .7s .35s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes edMarca{from{background-size:0% 100%}to{background-size:100% 100%}}
+
+/* barra do topo */
+html[data-visual="editorial"] .nav-in{background:var(--forest);border:0}
+html[data-visual="editorial"] .nav-links a{color:var(--paper);font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.08em}
+html[data-visual="editorial"] .nav-links a:hover{background:var(--forest-light);color:var(--lime)}
+html[data-visual="editorial"] .nav-links a.btn{background:var(--lime);color:var(--ink);font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:0;min-height:0;padding:10px 16px}
+html[data-visual="editorial"] .brand b{font-family:var(--headline);font-weight:400;font-size:26px;letter-spacing:0;text-transform:none;color:var(--paper)}
+html[data-visual="editorial"] .brand b::after{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lime);border:1.5px solid var(--ink);vertical-align:top;margin:6px 0 0 3px}
+html[data-visual="editorial"] .mark{filter:none}
+html[data-visual="editorial"] .menu-toggle{color:var(--lime)}
+@media (max-width:1060px){html[data-visual="editorial"] .nav-links{background:var(--forest);border:0}}
+
+/* faixa de letreiro */
+.ed-marquee{display:none}
+html[data-visual="editorial"] .ed-marquee{display:block;position:relative;z-index:1;height:36px;margin-top:22px;overflow:hidden;border-top:1.5px solid rgba(18,18,18,.35);border-bottom:1.5px solid rgba(18,18,18,.35)}
+.ed-trilha{display:flex;width:max-content;height:100%;align-items:center;animation:edLetreiro 18s linear infinite}
+.ed-trilha span{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);padding:0 22px;white-space:nowrap}
+.ed-trilha b{color:var(--plum);font-weight:700;margin-right:8px}
+@keyframes edLetreiro{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* botões */
+html[data-visual="editorial"] .btn{background:var(--forest);color:var(--lime);font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:0;text-transform:none;min-height:52px;padding:14px 22px;border:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+html[data-visual="editorial"] .btn:hover{transform:none;box-shadow:none}
+html[data-visual="editorial"] :is(.btn,.sug,.send,.voz,.visual-toggle,summary):active{transform:scale(.96);transition-duration:.08s}
+html[data-visual="editorial"] .btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+html[data-visual="editorial"] .btn-ghost:hover{background:var(--lime)}
+
+/* chat */
+html[data-visual="editorial"] .ai-wrap{background:var(--lilac);border:1.5px solid var(--ink)}
+html[data-visual="editorial"] .ai-wrap .eyebrow{color:var(--plum)}
+html[data-visual="editorial"] :is(.ai-intro p,.ai-bloqueio p,.ai-note){color:var(--plum-ink)}
+html[data-visual="editorial"] .sug{background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);font-family:var(--display);transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .15s}
+html[data-visual="editorial"] .sug:hover{background:var(--lime);transform:none}
+html[data-visual="editorial"] .msg .body{color:var(--ink)}
+html[data-visual="editorial"] .msg.me .body{background:var(--forest);color:var(--paper)}
+html[data-visual="editorial"] .msg .av{background:var(--lime);color:var(--ink);box-shadow:none}
+html[data-visual="editorial"] .msg .quemFala{color:var(--plum);font-family:var(--mono)}
+html[data-visual="editorial"] .typing i{background:var(--ink)}
+html[data-visual="editorial"] .composer{background:var(--paper);border:1.5px solid var(--ink)}
+html[data-visual="editorial"] .composer textarea{color:var(--ink);font-family:var(--display)}
+html[data-visual="editorial"] .composer textarea::placeholder{color:var(--muted-faint)}
+html[data-visual="editorial"] .send{background:var(--forest);color:var(--lime)}
+html[data-visual="editorial"] .voz{color:var(--ink)}
+html[data-visual="editorial"] .voz.on{background:var(--lime);color:var(--ink)}
+
+/* quem somos, vídeos e destaques */
+html[data-visual="editorial"] .sobre-stats b{font-family:var(--headline);font-weight:400;font-size:52px;line-height:1;color:var(--ink)}
+html[data-visual="editorial"] .sobre-stats span{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+html[data-visual="editorial"] :is(.sobre-video,.reels-frame){-webkit-mask-image:none;mask-image:none;border:1.5px solid var(--ink);background:#000}
+html[data-visual="editorial"] .reels-destaque{font-family:var(--headline);font-weight:400;font-size:clamp(28px,3.6vw,40px);letter-spacing:-.02em}
+
+/* blocos das animações: partículas claras sobre cor chapada */
+html[data-visual="editorial"] :is(.seg-visual,.construir-visual,.rede-visual){-webkit-mask-image:none;mask-image:none;border:1.5px solid var(--ink)}
+html[data-visual="editorial"] .seg-visual{background:var(--forest)}
+html[data-visual="editorial"] .construir-visual{background:var(--forest-light)}
+html[data-visual="editorial"] :is(.seg-visual,.construir-visual) canvas{mix-blend-mode:screen}
+html[data-visual="editorial"] .rede-visual{background:var(--lime)}
+html[data-visual="editorial"] .rede-visual canvas{filter:invert(1);mix-blend-mode:multiply}
+html[data-visual="editorial"] .seg-lista li::before{border-radius:0;background:var(--lime);box-shadow:none;border:1.5px solid var(--ink);width:10px;height:10px;top:6px}
+
+/* serviços: blocos de cor lado a lado, sem espaço, crescendo de cima pra baixo */
+html[data-visual="editorial"] #servicos .grid{gap:0;border:1.5px solid var(--ink)}
+html[data-visual="editorial"] .card{border:0;padding:28px 24px 32px;transition:none}
+html[data-visual="editorial"] .card:hover{transform:none;box-shadow:none}
+html[data-visual="editorial"] .card:nth-child(3n+1){background:var(--lime)}
+html[data-visual="editorial"] .card:nth-child(3n+2){background:var(--lilac)}
+html[data-visual="editorial"] .card:nth-child(3n){background:var(--forest-light)}
+html[data-visual="editorial"] .card:nth-child(3n) h3{color:var(--paper)}
+html[data-visual="editorial"] .card p{color:var(--plum-ink)}
+html[data-visual="editorial"] .card:nth-child(3n) p{color:rgba(242,238,232,.78)}
+html[data-visual="editorial"] .card .star{border-radius:0;background:var(--ink);color:var(--lime);box-shadow:none}
+html[data-visual="editorial"] .card:nth-child(3n) .star{background:var(--lime);color:var(--ink)}
+html[data-visual="editorial"] #servicos.in .card{animation:edCresce .46s cubic-bezier(.22,1,.36,1) both}
+html[data-visual="editorial"] #servicos.in .card:nth-child(1){animation-delay:.12s}
+html[data-visual="editorial"] #servicos.in .card:nth-child(2){animation-delay:.22s}
+html[data-visual="editorial"] #servicos.in .card:nth-child(3){animation-delay:.32s}
+html[data-visual="editorial"] #servicos.in .card:nth-child(4){animation-delay:.42s}
+html[data-visual="editorial"] #servicos.in .card:nth-child(5){animation-delay:.52s}
+html[data-visual="editorial"] #servicos.in .card:nth-child(6){animation-delay:.62s}
+html[data-visual="editorial"] #servicos.in .card > *{animation:edSobe .32s cubic-bezier(.22,1,.36,1) both;animation-delay:inherit}
+@keyframes edCresce{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes edSobe{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* etapas e dúvidas entram em sequência */
+html[data-visual="editorial"] .steps{border-top:1.5px solid var(--ink)}
+html[data-visual="editorial"] .step .n{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--lime);display:inline-block;padding:4px 8px;margin-bottom:16px}
+html[data-visual="editorial"] :is(#processo.in .step,#duvidas.in details){animation:edSobe16 .42s cubic-bezier(.22,1,.36,1) both}
+html[data-visual="editorial"] :is(#processo.in .step,#duvidas.in details):nth-child(2){animation-delay:.07s}
+html[data-visual="editorial"] :is(#processo.in .step,#duvidas.in details):nth-child(3){animation-delay:.14s}
+html[data-visual="editorial"] :is(#processo.in .step,#duvidas.in details):nth-child(4){animation-delay:.21s}
+html[data-visual="editorial"] :is(#processo.in .step,#duvidas.in details):nth-child(5){animation-delay:.28s}
+html[data-visual="editorial"] :is(#processo.in .step,#duvidas.in details):nth-child(6){animation-delay:.35s}
+@keyframes edSobe16{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+html[data-visual="editorial"] :is(.faq,details){border-color:var(--ink)}
+html[data-visual="editorial"] summary{font-family:var(--headline);font-weight:400;font-size:26px;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+html[data-visual="editorial"] summary:hover{color:var(--ink);font-style:italic}
+
+/* chamada final e rodapé */
+html[data-visual="editorial"] .band{background:var(--forest);border:0}
+html[data-visual="editorial"] .band h2{color:var(--paper)}
+html[data-visual="editorial"] .band p{color:rgba(242,238,232,.75)}
+html[data-visual="editorial"] .band .btn{background:var(--lime);color:var(--ink)}
+html[data-visual="editorial"] .foot{background:var(--forest);color:var(--paper)}
+html[data-visual="editorial"] .foot .brand b{color:var(--paper)}
+html[data-visual="editorial"] :is(.foot-meta,.legal){color:var(--sand)}
+html[data-visual="editorial"] .legal{border-color:rgba(242,238,232,.2)}
+
+/* portfólio */
+html[data-visual="editorial"] .tag{background:var(--sand);border:0;color:var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+html[data-visual="editorial"] :is(.projeto-galeria img,.projeto-imagem){border:1.5px solid var(--ink)}
+
+/* botão de troca de visual */
+.visual-toggle{position:fixed;left:22px;bottom:22px;z-index:60;display:flex;align-items:center;gap:8px;padding:11px 16px 11px 12px;border-radius:999px;border:1px solid rgba(160,190,255,.35);background:rgba(8,12,30,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--ink);font:600 13px var(--headline);cursor:pointer;box-shadow:0 0 22px rgba(45,95,255,.3);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.visual-toggle:hover{transform:translateY(-2px)}
+.visual-toggle:active{transform:scale(.94);transition-duration:.08s}
+.visual-toggle svg{width:18px;height:18px;flex:0 0 auto}
+html[data-visual="editorial"] .visual-toggle{border-radius:0;border:0;background:var(--forest);color:var(--lime);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:14px 16px}
+@media (max-width:480px){.visual-toggle{left:16px;bottom:16px}}
+
+/* cortina da transição: três blocos de cor descendo */
+.visual-cortina{position:fixed;inset:0;z-index:200;display:grid;grid-template-columns:repeat(3,1fr);pointer-events:none;visibility:hidden}
+.visual-cortina.on{visibility:visible;pointer-events:auto}
+.visual-cortina i{display:block;transform:scaleY(0);transform-origin:top}
+.visual-cortina i:nth-child(1){background:#D8FB5B}
+.visual-cortina i:nth-child(2){background:#C9B3F2}
+.visual-cortina i:nth-child(3){background:#121F17}
+.visual-cortina.on i{animation:cortinaDesce .46s cubic-bezier(.22,1,.36,1) both}
+.visual-cortina.on i:nth-child(2){animation-delay:.09s}
+.visual-cortina.on i:nth-child(3){animation-delay:.18s}
+.visual-cortina.sai i{transform-origin:bottom;animation:cortinaSai .46s cubic-bezier(.22,1,.36,1) both}
+.visual-cortina.sai i:nth-child(2){animation-delay:.09s}
+.visual-cortina.sai i:nth-child(3){animation-delay:.18s}
+.visual-cortina b{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:500 12px "JetBrains Mono",ui-monospace,monospace;letter-spacing:.2em;color:#121212;background:#D8FB5B;padding:9px 14px;border:1.5px solid #121212;opacity:0;white-space:nowrap}
+.visual-cortina.on:not(.sai) b{animation:cortinaTexto .3s .3s ease-out both}
+.visual-cortina.sai b{opacity:0;transition:opacity .15s}
+@keyframes cortinaDesce{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes cortinaSai{from{transform:scaleY(1)}to{transform:scaleY(0)}}
+@keyframes cortinaTexto{from{opacity:0;transform:translate(-50%,-30%)}to{opacity:1;transform:translate(-50%,-50%)}}
+
+@media (prefers-reduced-motion: reduce){
+  html[data-visual="editorial"] *{animation:none!important}
+  .ed-trilha{animation:none!important}
+}
+
 </style>
 </head>
 <body>
@@ -591,6 +785,8 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
     </button>
   </div>
 </header>
+
+<div class="ed-marquee" aria-hidden="true"><div class="ed-trilha"><span><b>SISTEMAS</b>sob medida</span><span><b>APPS</b>Android e iPhone</span><span><b>SITES</b>no Google</span><span><b>AUTOMAÇÕES</b>WhatsApp e pagamentos</span><span><b>IA</b>Milla 24h</span><span><b>PROPOSTA</b>em até 120h</span><span><b>SUPORTE</b>90 dias</span><span><b>CÓDIGO</b>100% seu</span><span><b>SISTEMAS</b>sob medida</span><span><b>APPS</b>Android e iPhone</span><span><b>SITES</b>no Google</span><span><b>AUTOMAÇÕES</b>WhatsApp e pagamentos</span><span><b>IA</b>Milla 24h</span><span><b>PROPOSTA</b>em até 120h</span><span><b>SUPORTE</b>90 dias</span><span><b>CÓDIGO</b>100% seu</span></div></div>
 
 <main>
 
@@ -660,6 +856,50 @@ h3,.card h3,.step h3,.projeto-head h3{font-weight:600}
   </div>
 </footer>
 
+<button class="visual-toggle" id="visualToggle" type="button" aria-pressed="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+  <span>Visual editorial</span>
+</button>
+<div class="visual-cortina" id="visualCortina" aria-hidden="true"><i></i><i></i><i></i><b>NOVO VISUAL</b></div>
+<script>
+(function(){
+  "use strict";
+  var raiz = document.documentElement;
+  var botao = document.getElementById("visualToggle");
+  var cortina = document.getElementById("visualCortina");
+  if (!botao || !cortina) return;
+  var reduz = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function editorial(){ return raiz.getAttribute("data-visual") === "editorial"; }
+  function rotulo(){
+    botao.querySelector("span").textContent = editorial() ? "Visual vidro" : "Visual editorial";
+    botao.setAttribute("aria-pressed", editorial() ? "true" : "false");
+    botao.setAttribute("aria-label", editorial() ? "Voltar ao visual de vidro" : "Mudar para o visual editorial");
+  }
+  function aplicar(modoEditorial){
+    if (modoEditorial){ window.sbmhFontesEditorial && window.sbmhFontesEditorial(); raiz.setAttribute("data-visual", "editorial"); }
+    else raiz.removeAttribute("data-visual");
+    try { localStorage.setItem("sbmh.visual", modoEditorial ? "editorial" : "vidro"); } catch(e){}
+    rotulo();
+    // reapresenta as seções que já estavam na tela, para os efeitos rodarem de novo
+    Array.prototype.forEach.call(document.querySelectorAll("[data-reveal].in"), function(s){
+      s.classList.remove("in"); void s.offsetWidth; s.classList.add("in");
+    });
+  }
+
+  botao.addEventListener("click", function(){
+    var proximo = !editorial();
+    if (reduz){ aplicar(proximo); return; }
+    if (cortina.classList.contains("on")) return;
+    if (proximo && window.sbmhFontesEditorial) window.sbmhFontesEditorial();
+    cortina.classList.remove("sai");
+    cortina.classList.add("on");
+    setTimeout(function(){ aplicar(proximo); cortina.classList.add("sai"); }, 640);
+    setTimeout(function(){ cortina.classList.remove("on", "sai"); }, 1320);
+  });
+  rotulo();
+})();
+</script>
 <a class="wa-float" href="https://wa.me/5592994332941?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20SBMH%20Tech." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
   <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#whatsapp"/></svg>
 </a>
